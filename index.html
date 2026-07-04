@@ -875,17 +875,27 @@ function seatOrderToPOSOrder(o){
 
 async function exportOneOrderToPOS(o){
   if(!db) throw new Error('Firebase 還沒連線');
+  if(o.posImportedAt) return {skipped:true, reason:'already-imported'};
   if(!o.doneAt)o.doneAt=new Date().toISOString();
-  let key='seat_'+sanitizeFirebaseKey(o.id);
-  let ref=db.ref('orders/'+key);
-  let snap=await ref.once('value');
-  if(snap.exists()) return {skipped:true};
-  await ref.set(seatOrderToPOSOrder(o));
-  return {skipped:false};
+  let posOrder=seatOrderToPOSOrder(o);
+  posOrder.importSource='seatSystem';
+  posOrder.seatOrderId=o.id;
+  posOrder.importedAt=new Date().toISOString();
+  let ref=await db.ref('orders').push(posOrder);
+  return {skipped:false, key:ref.key};
 }
 async function checkoutAndExportToPOS(id){
   let o=state.orders.find(x=>x.id===id);
   if(!o)return;
+  if(o.posImportedAt){
+    if(!confirm(`這筆已經匯入過 POS。\n要只結帳清桌嗎？\n${o.seats.join('、')}｜${paymentSummary(o)}`))return;
+    o.status='done';
+    o.doneAt=o.doneAt||new Date().toISOString();
+    state.history.unshift(o);
+    state.orders=state.orders.filter(x=>x.id!==id);
+    save();renderAll();
+    return;
+  }
   if(!confirm(`結帳清桌並匯入 POS？\n${o.seats.join('、')}｜${paymentSummary(o)}\n\n確認後會清桌，並把這筆寫進 POS 今日紀錄。`))return;
   if(!db){
     alert('Firebase 還沒連線，請等右上角顯示已同步 Firebase');
@@ -894,8 +904,9 @@ async function checkoutAndExportToPOS(id){
   try{
     o.status='done';
     o.doneAt=new Date().toISOString();
-    await exportOneOrderToPOS(o);
+    let res=await exportOneOrderToPOS(o);
     o.posImportedAt=new Date().toISOString();
+    o.posFirebaseKey=res.key||'';
     state.history.unshift(o);
     state.orders=state.orders.filter(x=>x.id!==id);
     if(editingOrderId===id){
@@ -907,28 +918,34 @@ async function checkoutAndExportToPOS(id){
     alert('已結帳清桌，並匯入 POS');
   }catch(err){
     console.warn('匯入 POS 失敗',err);
-    alert('匯入 POS 失敗，這筆沒有清桌。請確認 Firebase 連線後再試。');
+    alert('匯入 POS 失敗：' + (err && err.message ? err.message : err) + '\n\n這筆沒有清桌，請確認 Firebase 權限或網路後再試。');
   }
 }
 
 async function exportTodayToPOS(){
   if(!db){alert('Firebase 還沒連線，請等右上角顯示已同步 Firebase');return;}
   let today=dayKey(new Date());
-  let list=(state.history||[]).filter(o=>dayKey(o.doneAt||new Date())===today);
-  if(!list.length){alert('今天還沒有已結帳紀錄可以匯入 POS');return;}
-  if(!confirm(`要把今天 ${list.length} 筆已結帳紀錄匯入 POS 嗎？\n\n會寫到 POS 的 orders，不會扣 POS 庫存。`))return;
-  let imported=0, skipped=0;
+  let list=(state.history||[]).filter(o=>dayKey(o.doneAt||new Date())===today && !o.posImportedAt);
+  if(!list.length){alert('今天沒有尚未匯入 POS 的已結帳紀錄');return;}
+  if(!confirm(`要把今天 ${list.length} 筆尚未匯入的紀錄匯入 POS 嗎？\n\n會寫到 POS 的 orders，不會扣 POS 庫存。`))return;
+  let imported=0, failed=0;
   for(let o of list){
-    let key='seat_'+sanitizeFirebaseKey(o.id);
-    let ref=db.ref('orders/'+key);
-    let snap=await ref.once('value');
-    if(snap.exists()){skipped++;continue;}
-    await ref.set(seatOrderToPOSOrder(o));
-    imported++;
+    try{
+      let res=await exportOneOrderToPOS(o);
+      if(!res.skipped){
+        o.posImportedAt=new Date().toISOString();
+        o.posFirebaseKey=res.key||'';
+        imported++;
+      }
+    }catch(e){
+      console.warn('單筆匯入失敗',e,o);
+      failed++;
+    }
   }
-  alert(`匯入完成！\n新增 ${imported} 筆\n略過已匯入 ${skipped} 筆`);
+  save();
+  renderAll();
+  alert(`匯入完成！\n新增 ${imported} 筆\n失敗 ${failed} 筆`);
 }
-
 
 function renderHistoryCards(list,withDelete=true){if(!list.length)return '<div class="hint">目前沒有紀錄。</div>';let html='';list.forEach(o=>{html+=`<div class="orderCard"><div class="top"><span>${o.name?o.name+'｜':''}${o.seats.join('、')}</span><span class="topRightActions"><span>${o.paidAmount?('應收 $'+dueAmount(o.total,o.paidAmount)):('$'+o.total)}</span>${withDelete?`<button class="miniDelete" title="刪除這筆紀錄" onclick="event.stopPropagation();deleteHistoryItem('${o.id}')">×</button>`:''}</span></div><div class="meta">${new Date(o.doneAt).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})}｜${o.pkg.fullName||o.pkg.name}｜${paymentSummary(o)}${o.posImportedAt?'｜已匯入POS':''}</div><div class="meta">時段：${orderTimeRange(o)||'-'}</div><div class="meta">飲料：${orderDrinkDetail(o)}</div><div class="meta">甜點：${dessertSummary(o)}</div></div>`});return html}
 function renderAllHistory(){let box=$('historyAllCards');if(!box)return;let arr=[...state.history].sort((a,b)=>new Date(b.doneAt)-new Date(a.doneAt));if(!arr.length){box.innerHTML='<div class="hint" style="padding:20px">還沒有任何歷史紀錄。</div>';return}let groups={};arr.forEach(o=>{let k=dayKey(o.doneAt||new Date());(groups[k]||(groups[k]=[])).push(o)});let html='';Object.keys(groups).sort((a,b)=>b.localeCompare(a)).forEach(k=>{html+=`<div class="historyDay">${dayLabel(k)}</div><div class="cards">${renderHistoryCards(groups[k],false)}</div>`});box.innerHTML=html}
