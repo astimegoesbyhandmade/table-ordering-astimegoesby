@@ -9,10 +9,14 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;background:linear-gradient(180deg,#fff8fb,#fff);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",Arial,sans-serif;color:var(--ink)}
 header{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}h1{font-size:20px;margin:0}.sub{font-size:12px;color:var(--muted);margin-top:2px}.pill{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 10px;font-weight:800;color:#6b5b66}
 .app{display:grid;grid-template-columns:minmax(520px,58%) minmax(390px,42%);gap:12px;padding:12px}.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}.panel h2{font-size:17px;margin:0;padding:12px 14px;border-bottom:1px solid var(--line);background:#fffafb}.queuePanel h2{background:linear-gradient(135deg,#fff0b8 0%,#ffd98f 100%);color:#5a3a00;border-bottom:1px solid #f0c56d;font-weight:900}.body{padding:12px}.legend{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}.tag{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:999px;padding:6px 9px;background:#fff;font-size:12px;font-weight:700}.dot{width:12px;height:12px;border-radius:50%;border:1px solid #d7cbd2}.empty{background:#fff}.sel{background:var(--pink)}.busy{background:var(--green)}.soon{background:var(--yellow)}.late{background:var(--red)}.resv{background:var(--blue)}.food{background:var(--purple)}
-.mapWrap{height:calc(100vh - 110px);min-height:760px;overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;align-items:flex-start;justify-content:center}.map{position:relative;width:760px;height:1165px;margin:0 auto;background:#fff;border-radius:12px;transform-origin:top center;transform:scale(var(--mapScale,1))}.dash{position:absolute;border:0;border-top:5px dotted #111}.dash.v{border-top:0;border-left:5px dotted #111}.areaText{position:absolute;font-size:25px;font-weight:900;letter-spacing:4px;line-height:1.6;white-space:pre;text-align:center}.tableRound,.tableRect{position:absolute;border:6px solid #111;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:24px}.tableRound{border-radius:50%}.tableRect{border-radius:2px}.counterLabel{position:absolute;font-size:28px;font-weight:900}.seat{position:absolute;width:58px;height:58px;border:5px solid #111;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;cursor:pointer;user-select:none}.seat.small{width:50px;height:50px}.seat.selected{background:var(--pink);transform:scale(1.06)}.seat.busy{background:var(--green)}.seat.soon{background:var(--yellow)}.seat.late{background:var(--red)}.seat.reserved{background:var(--blue)}.seat.foodPending{box-shadow:0 0 0 7px var(--purple) inset}.seat .mini{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:11px;background:#fff;border:1px solid #ddd;border-radius:99px;padding:1px 5px;white-space:nowrap;z-index:3}.seat[data-seat="A1"] .mini{top:-18px;bottom:auto}.cab{position:absolute;border:4px solid #111;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px}.divider{position:absolute;border-top:5px dotted #111;height:1px}.divider.v{border-top:0;border-left:5px dotted #111;width:1px}
+.mapWrap{height:calc(100vh - 110px);min-height:0;overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;align-items:flex-start;justify-content:center}.map{position:relative;width:760px;height:1165px;margin:0 auto;background:#fff;border-radius:12px;transform-origin:top center;transform:translateX(-34px) scale(var(--mapScale,1))}.dash{position:absolute;border:0;border-top:5px dotted #111}.dash.v{border-top:0;border-left:5px dotted #111}.areaText{position:absolute;font-size:25px;font-weight:900;letter-spacing:4px;line-height:1.6;white-space:pre;text-align:center}.tableRound,.tableRect{position:absolute;border:6px solid #111;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:24px}.tableRound{border-radius:50%}.tableRect{border-radius:2px}.counterLabel{position:absolute;font-size:28px;font-weight:900}.seat{position:absolute;width:58px;height:58px;border:5px solid #111;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;cursor:pointer;user-select:none}.seat.small{width:50px;height:50px}.seat.selected{background:var(--pink);transform:scale(1.06)}.seat.busy{background:var(--green)}.seat.soon{background:var(--yellow)}.seat.late{background:var(--red)}.seat.reserved{background:var(--blue)}.seat.foodPending{box-shadow:0 0 0 7px var(--purple) inset}.seat .mini{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:11px;background:#fff;border:1px solid #ddd;border-radius:99px;padding:1px 5px;white-space:nowrap;z-index:3}.seat[data-seat="A1"] .mini{top:-18px;bottom:auto}.cab{position:absolute;border:4px solid #111;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px}.divider{position:absolute;border-top:5px dotted #111;height:1px}.divider.v{border-top:0;border-left:5px dotted #111;width:1px}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.btn{border:1px solid var(--line);background:#fff;border-radius:14px;padding:11px 12px;font-size:16px;font-weight:900;cursor:pointer}.btn.primary{background:var(--pink);color:#fff;border-color:var(--pink)}.btn.brown{background:var(--brown);color:#fff;border-color:var(--brown)}.btn.blue{background:#eaf7ff;border-color:#bee4ff}.btn.danger{background:#fff1f1;border-color:#ffc8c8}.btn.active{outline:3px solid var(--pink);background:var(--pink2)}.btn:active{transform:translateY(1px)}input,select{width:100%;border:1px solid var(--line);border-radius:14px;padding:11px 12px;font-size:16px;background:#fff;font-weight:700}.label{font-size:13px;font-weight:900;color:#776772;margin:8px 0 5px}.hint{font-size:12px;color:var(--muted);line-height:1.4}.summary{background:#fff6fb;border:1px solid var(--line);border-radius:16px;padding:10px;margin-bottom:10px}.summary b{font-size:18px}.pkg{border:1px solid var(--line);border-radius:15px;padding:10px;background:#fff;cursor:pointer}.pkg.active{background:var(--pink2);border-color:var(--pink);outline:2px solid var(--pink)}.pkg .price{font-size:20px;font-weight:1000;color:#aa7c58}.pkg .name{font-weight:1000}.pkg .time{font-size:12px;color:var(--muted);margin-top:2px}.drinkCats{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px}.cat{flex:0 0 auto;border:1px solid var(--line);border-radius:999px;background:#fff;padding:8px 12px;font-weight:900}.cat.active{background:var(--brown);color:#fff}.drinkGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:230px;overflow:auto;padding-right:3px}.drink{border:1px solid var(--line);border-radius:14px;padding:9px;background:#fff;text-align:left;font-weight:900}.drink.active{background:var(--pink2);border-color:var(--pink);outline:2px solid var(--pink)}.drink .p{color:#a77755}.person{border:1px solid var(--line);border-radius:16px;padding:10px;margin:10px 0;background:#fff}.personHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.seatBadge{font-size:18px;font-weight:1000;background:#fff1f7;border:1px solid var(--line);border-radius:999px;padding:6px 10px}.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 11px;font-weight:900;cursor:pointer}.chip.active{background:var(--pink);color:#fff;border-color:var(--pink)}.chip.fixed{background:#f7f1ed;color:#877567}.servedBtn{border-radius:999px;padding:9px 12px;font-weight:1000;border:1px solid var(--line);background:#fff}.servedBtn.on{background:var(--green);border-color:#8dde9f}.servedBtn.off{background:var(--purple);border-color:#c7b5f7}.dessertGrid{display:grid;grid-template-columns:1fr;gap:8px}.dessertItem{display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:14px;padding:10px;background:#fff}.qty{display:flex;align-items:center;gap:6px}.qty button{width:36px;height:36px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:20px;font-weight:1000}.total{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 12px;margin:12px -12px -12px;display:flex;align-items:center;justify-content:space-between;gap:8px}.money{font-size:25px;font-weight:1000;color:#9d6e4d}.cards{display:grid;grid-template-columns:1fr;gap:8px;max-height:220px;overflow:auto}.orderCard{border:1px solid var(--line);border-radius:14px;padding:10px;background:#fff}.orderCard .top{display:flex;justify-content:space-between;font-weight:1000}.orderCard .meta{font-size:12px;color:var(--muted);margin-top:3px}.orderCard .warn{font-weight:1000;color:#a05b00}.hidden{display:none!important}
 .servedQuick{display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px}.servedQuick button{text-align:left;border:1px solid var(--line);background:#fff;border-radius:14px;padding:10px 12px;font-weight:800}.servedQuick button.done{background:var(--green)}.servedQuick .small{display:block;font-size:12px;color:var(--muted);font-weight:600;margin-top:2px}
-@media(max-width:980px){.app{grid-template-columns:1fr}.mapWrap{height:58vh}.drinkGrid{grid-template-columns:1fr}.grid3{grid-template-columns:1fr 1fr}.panel.right{position:relative}.seat{width:54px;height:54px}}
+.queuePanel .body{padding:18px}.queuePanel .cards{max-height:460px;min-height:320px;overflow:auto;padding-right:6px}.queuePanel .queueCard{min-height:220px}
+@media(max-width:980px){.queuePanel .cards{max-height:420px;min-height:300px}}
+@media(max-width:580px){.queuePanel .cards{max-height:380px;min-height:280px}.queuePanel .body{padding:14px}}
+
+@media(max-width:980px){.app{grid-template-columns:1fr}.mapWrap{height:58vh}.map{transform:translateX(-20px) scale(var(--mapScale,1))}.drinkGrid{grid-template-columns:1fr}.grid3{grid-template-columns:1fr 1fr}.panel.right{position:relative}.seat{width:54px;height:54px}}
 
 .seat.reservationActive{background:var(--blue)!important;box-shadow:0 0 0 6px rgba(80,160,220,.18) inset}
 .toggle button.walkin.active{background:var(--pink)!important;border-color:#ff6eae!important;color:#5a2440!important}
@@ -211,16 +215,20 @@ header{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.94);backdro
 
 .queueCard{
   border:1px solid var(--line);
-  border-radius:16px;
-  padding:12px;
-  margin-bottom:10px;
+  border-radius:18px;
+  padding:14px 16px;
+  margin-bottom:12px;
+  min-height:182px;
   background:#fff;
   box-shadow:0 4px 14px rgba(80,45,70,.08);
 }
 .queueCard.hot{background:#fff8e5;border-color:#ffe2a8}
 .queueCard.urgent{background:#fff0f0;border-color:#ffc6c6}
-.queueCard .big{font-size:18px;font-weight:900;margin-bottom:5px}
-.queueCard .metaLine{font-size:14px;color:var(--muted);font-weight:800;line-height:1.45}
+.queueCard .big{font-size:20px;font-weight:900;margin-bottom:6px;line-height:1.35;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.queueCard .metaLine{font-size:15px;color:var(--muted);font-weight:800;line-height:1.6}
+.queueSeatLead{display:inline-flex;align-items:center;justify-content:center;padding:3px 10px;border-radius:999px;background:#ffe7f0;border:1px solid #f5b7d0;color:#8d2e57;font-size:24px;font-weight:1000;line-height:1}
+.queueMiniRow{margin:10px 0 6px}
+@media(max-width:580px){.queueCard{min-height:170px;padding:12px 14px}.queueCard .big{font-size:18px}.queueSeatLead{font-size:20px;padding:2px 8px}}
 .dessertServeRow{
   display:flex;
   justify-content:space-between;
@@ -328,6 +336,76 @@ header{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.94);backdro
   font-weight:1000;
 }
 
+
+.miniTableWrap{margin:10px 0 12px}
+.miniTableTitle{font-size:12px;font-weight:900;color:#7a5b32;margin-bottom:6px}
+.miniTable{
+  position:relative;
+  background:#fffaf0;
+  border:1px solid #ecd8ae;
+  border-radius:16px;
+  overflow:hidden;
+  display:inline-block;
+}
+.miniTableShape{
+  position:absolute;
+  left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  background:#f6e8c4;
+  border:1px solid #d9bc79;
+  color:#866527;
+  font-size:12px;
+  font-weight:900;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+}
+.miniTableShape.round{border-radius:999px}
+.miniTableShape.rect{border-radius:16px}
+.miniSeatDot{
+  position:absolute;
+  transform:translate(-50%,-50%);
+  min-width:28px;
+  height:28px;
+  padding:0 6px;
+  border-radius:999px;
+  background:#fff;
+  border:1px solid #d8dbe8;
+  color:#555;
+  font-size:11px;
+  font-weight:900;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 1px 2px rgba(0,0,0,.05);
+}
+.miniSeatDot.inOrder{background:#ffe9f4;border-color:#f0aacd;color:#9a3d66}
+.miniSeatDot.focus{background:#ff6b7f;border-color:#ff6b7f;color:#fff;box-shadow:0 0 0 3px rgba(255,107,127,.18)}
+.queueMiniRow{margin:8px 0 4px}
+.queueCard .miniTableWrap{margin:6px 0 2px}
+
+
+.queueBatchHint{
+  margin-top:6px;
+  display:inline-block;
+  padding:4px 9px;
+  border-radius:999px;
+  background:#fff0b8;
+  border:1px solid #f0c56d;
+  color:#6b4300;
+  font-size:13px;
+  font-weight:1000;
+}
+.queuePriorityHint{
+  font-size:12px;
+  color:#9a7a46;
+  font-weight:900;
+  margin-top:3px;
+}
+
+
 </style>
 </head>
 <body>
@@ -380,7 +458,34 @@ header{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.94);backdro
 <script>
 const $=id=>document.getElementById(id);
 const seats=[...document.querySelectorAll('.seat')].map(x=>x.dataset.seat);
+const seatLayout=Object.fromEntries([...document.querySelectorAll('.seat')].map(el=>[el.dataset.seat,{left:parseFloat((el.style.left||'0').replace('px',''))||0,top:parseFloat((el.style.top||'0').replace('px',''))||0}]));
+function seatGroupKey(seat){let m=String(seat||'').match(/^[A-Za-z]+/);return m?m[0]:''}
+function seatsOfGroup(group){return seats.filter(s=>seatGroupKey(s)===group)}
+function tableDisplayName(group){return ({A:'大桌',B:'小桌',C:'露營',D:'F4',E:'發發',F:'三朵花',G:'五月花'}[group]||group)}
+function renderMiniTableThumb(focusSeat,activeSeats=[]){
+  let group=seatGroupKey(focusSeat);if(!group)return '';
+  let groupSeats=seatsOfGroup(group);if(!groupSeats.length)return '';
+  let pts=groupSeats.map(s=>({seat:s,left:seatLayout[s]?.left||0,top:seatLayout[s]?.top||0}));
+  let minX=Math.min(...pts.map(p=>p.left)), maxX=Math.max(...pts.map(p=>p.left));
+  let minY=Math.min(...pts.map(p=>p.top)), maxY=Math.max(...pts.map(p=>p.top));
+  let rawW=Math.max(90,maxX-minX+70), rawH=Math.max(75,maxY-minY+70);
+  let scale=Math.min(0.48,150/rawW,110/rawH);
+  let width=Math.round(rawW*scale), height=Math.round(rawH*scale);
+  let centerX=((minX+maxX)/2-minX+35)*scale, centerY=((minY+maxY)/2-minY+35)*scale;
+  let shapeClass=(groupSeats.length>=5||group==='G'||group==='D')?'round':'rect';
+  let shapeW=Math.max(34,Math.min(66,(maxX-minX+28)*0.42*scale+20));
+  let shapeH=Math.max(24,Math.min(56,(maxY-minY+28)*0.42*scale+14));
+  let dots=pts.map(p=>{
+    let x=Math.round((p.left-minX+35)*scale), y=Math.round((p.top-minY+35)*scale);
+    let cls='miniSeatDot';
+    if(activeSeats.includes(p.seat))cls+=' inOrder';
+    if(p.seat===focusSeat)cls+=' focus';
+    return `<div class="${cls}" style="left:${x}px;top:${y}px">${p.seat}</div>`;
+  }).join('');
+  return `<div class="miniTableWrap"><div class="miniTableTitle">${tableDisplayName(group)}位置</div><div class="miniTable" style="width:${width}px;height:${height}px"><div class="miniTableShape ${shapeClass}" style="left:${centerX}px;top:${centerY}px;width:${shapeW}px;height:${shapeH}px">${tableDisplayName(group)}</div>${dots}</div></div>`;
+}
 const packages=[
+ {id:'D0',name:'單點飲料｜不做手作',price:0,time:90,drinkBase:0,people:1,drinksIncluded:0,desc:'只點飲料90分'},
  {id:'A',name:'串珠A｜不含飲料',price:190,time:60,drinkBase:0,people:1,drinksIncluded:0,desc:'單人60分'},
  {id:'B',name:'串珠B｜含$120飲料',price:299,time:90,drinkBase:120,people:1,drinksIncluded:1,desc:'單人90分'},
  {id:'C',name:'串珠C｜雙人含2杯$120',price:550,time:90,drinkBase:120,people:2,drinksIncluded:2,desc:'雙人90分'},
@@ -403,6 +508,12 @@ const drinks=[
  {cat:'茶類',name:'柚香紅茶',temp:'冰',price:150,sugar:['糖固定'],iceFixed:'冰磚固定'},
 
  {cat:'奶茶',name:'時光鮮奶茶',temp:'冰',price:160,sugar:['微甜','正常甜'],iceFixed:'冰磚固定'},
+
+ {cat:'隱藏菜單',name:'義式濃縮咖啡',temp:'熱',price:120,sugar:[]},
+ {cat:'隱藏菜單',name:'手沖莊園濾掛咖啡',temp:'熱',price:130,sugar:[]},
+ {cat:'隱藏菜單',name:'拿鐵咖啡',temp:'熱',price:150,sugar:['無糖','有糖']},
+ {cat:'隱藏菜單',name:'太妃糖拿鐵',temp:'熱',price:170,sugar:['甜度固定']},
+ {cat:'隱藏菜單',name:'時光鮮奶茶',temp:'熱',price:150,sugar:['無糖','有糖']},
 
  {cat:'果茶',name:'黃金柚子茶',temp:'熱',price:130,sugar:['甜度固定']},
  {cat:'果茶',name:'黃金柚子茶',temp:'冰',price:140,sugar:['甜度固定'],ice:['正常冰','少冰','去冰']},
@@ -474,10 +585,10 @@ function renderPeopleDrinks(){ensurePeople();$('peopleDrinks').classList.toggle(
  }
  html+=`<div class="label">選飲料</div><div class="chips">${selected.map(seat=>`<button class="chip ${activeDrinkSeat===seat?'active':''}" onclick="chooseDrinkSeat('${seat}')"><b>${seat}</b>｜${seatDrinkLabel(seat)}</button>`).join('')}</div>`;
  if(!activeDrinkSeat){html+=``;$('peopleDrinks').innerHTML=html;renderTotal();return}
- let seat=activeDrinkSeat;let pd=personDrinks[seat];let cats=['咖啡','茶類','奶茶','果茶'];let list=drinks.filter(d=>d.cat===drinkCat);
+ let seat=activeDrinkSeat;let pd=personDrinks[seat];let cats=['咖啡','茶類','奶茶','果茶','隱藏菜單'];let list=drinks.filter(d=>d.cat===drinkCat);
  let singleBtn=hasMixedSingleDrinkNeed()?`<button class="singleDrinkBtn ${pd.single?'on':''}" onclick="toggleSingleDrink('${seat}')">單點</button>`:'';
  let clearDrinkBtn=pd.drink?`<button class="btn danger" onclick="clearDrink('${seat}')">清空飲料</button>`:'';
- html+=`<div class="person"><div class="personHead"><span class="seatBadge">${seat} 的飲料${pd.single?'<span class="singleDrinkTag">單點</span>':''}</span><div class="row">${singleBtn}${clearDrinkBtn}</div></div>`;
+ html+=`<div class="person"><div class="personHead"><span class="seatBadge">${seat} 的飲料${pd.single?'<span class="singleDrinkTag">單點</span>':''}</span><div class="row">${singleBtn}${clearDrinkBtn}</div></div>${renderMiniTableThumb(seat,selected.filter(s=>seatGroupKey(s)===seatGroupKey(seat)))}`;
  html+=`<div class="drinkCats">${cats.map(c=>`<button class="cat ${drinkCat===c?'active':''}" onclick="drinkCat='${c}';renderPeopleDrinks()">${c}</button>`).join('')}</div><div class="drinkGrid">`;
  list.forEach((d,i)=>{let key=drinkKey(d);let active=pd.drink&&drinkKey(pd.drink)===key;html+=`<button class="drink ${active?'active':''}" onclick="pickDrink('${seat}','${drinkCat}',${i})"><div>${d.name}｜${d.temp}</div><div class="p">${drinkPriceLabel(d,seat)}</div></button>`});
  html+=`</div>`;
@@ -512,9 +623,19 @@ function renderMap(){document.querySelectorAll('.seat').forEach(el=>{let s=el.da
 function seatClick(e){let s=e.currentTarget.dataset.seat;let o=isSeatBusy(s); if(arrangingReservationId){if(o){alert('這個座位目前已被使用或預約，不能選。');return}let r=state.pendingReservations.find(x=>x.id===arrangingReservationId);let max=r?Number(r.people):99;if(selected.includes(s)){selected=selected.filter(x=>x!==s)}else{if(selected.length>=max){alert('已經選滿 '+max+' 個座位囉');return}selected.push(s)}renderMap();renderReservationPlanner();return} if(o){if(viewOrderId===o.id){clearSelection();return}viewOrderId=o.id;editingOrderId=null;selected=[];activeDrinkSeat=null;personDrinks={};dessertQty={cheese:0,basque:0};pkgQty={};loadTopServedDraft(o);renderAll();return} if(selected.includes(s)){selected=selected.filter(x=>x!==s); if(activeDrinkSeat===s)activeDrinkSeat=null;}else selected.push(s);viewOrderId=null;renderPackages();renderPeopleDrinks();renderMap();renderCards();renderTotal();renderOrderPreview();}
 document.querySelectorAll('.seat').forEach(el=>el.addEventListener('click',seatClick));
 function showOrder(id,focusSeat=null){let o=state.orders.find(x=>x.id===id); if(!o)return; viewOrderId=o.id; editingOrderId=id; loadTopServedDraft(o); selected=[];personDrinks=JSON.parse(JSON.stringify(o.drinks||{}));dessertQty=JSON.parse(JSON.stringify(o.desserts||{cheese:0}));selected=[...o.seats];activeDrinkSeat=(focusSeat&&selected.includes(focusSeat))?focusSeat:(selected[0]||null);orderType=o.type;pkgQty=o.pkg?.qty?JSON.parse(JSON.stringify(o.pkg.qty)):(o.pkg?.id&&o.pkg.id!=='MULTI'?{[o.pkg.id]:o.pkg.qty||1}:{});$('custName').value=o.name||'';$('resvTime').value=o.resvTime||'';setOrderType(orderType);if(orderType==='walkin'&&$('paidAmount'))$('paidAmount').value=o.paidAmount||'';renderAll();}
+function orderElapsedMinutes(o){
+  if(!o||!o.startAt)return 0;
+  return Math.max(0,Math.floor((new Date()-new Date(o.startAt))/60000));
+}
+function orderTimeStatus(o){
+  let elapsed=orderElapsedMinutes(o);
+  let remain=o?.endAt?Math.ceil((new Date(o.endAt)-new Date())/60000):null;
+  if(remain===null)return `已開桌 ${elapsed} 分`;
+  return remain<0?`已開桌 ${elapsed} 分｜超時 ${Math.abs(remain)} 分`:`已開桌 ${elapsed} 分｜剩 ${remain} 分`;
+}
 function orderTimeRange(o){let start='';let end='';if(o.type==='reservation'&&o.resvTime){start=o.resvTime}else if(o.startAt){start=fmtTime(o.startAt)};if(o.endAt){end=fmtTime(o.endAt)};return (start&&end)?`${start}–${end}`:(start||end||'')}
 function orderDrinkDetail(o){let lines=o.seats.map(s=>{let pd=o.drinks?.[s];if(!pd||!pd.drink)return '';let parts=[`${s}: ${pd.drink.name}${pd.drink.temp}${pd.single?'（單點）':''}`];if(pd.sugar)parts.push(pd.sugar);if(pd.ice)parts.push(pd.ice);let check=pd.served?'<span class="checkOk" title="已送達"></span>':'';return `<span class="drinkLine">${parts.join(' ')} ${check}</span>`}).filter(Boolean);return lines.length?lines.join(''):'未選';}
-function renderOrderPreview(){let box=$('orderPreview');if(!box)return;if(!viewOrderId){box.classList.add('hidden');box.innerHTML='';return}let o=state.orders.find(x=>x.id===viewOrderId);if(!o){viewOrderId=null;box.classList.add('hidden');box.innerHTML='';return}let time=orderTimeRange(o)||'未設定';let editing=editingOrderId===o.id;box.classList.remove('hidden');box.innerHTML=`<div class="previewTop"><div class="title">${editing?'正在編輯':'正在查看'}：${o.seats.join('、')}</div><button class="btn brown" onclick="checkout('${o.id}')">結帳清桌</button></div><div class="line">${o.type==='reservation'?'預約':'現場'}｜${o.pkg.fullName||o.pkg.name}｜${paymentSummary(o)}</div><div class="line">時段：${time}</div><div class="line">飲料：</div><div class="line">${orderDrinkDetailTop(o)}</div><div class="line">甜點：</div><div class="line">${dessertDetailTop(o)}</div><div class="row" style="margin-top:10px;gap:10px">${editing?'<span class="hint">下方「座位飲料」已展開，可修改飲料與其他細項。</span>':`<button class="btn brown" onclick="showOrder('${o.id}','${o.seats[0]||''}')">編輯飲料/修改</button>`}<button class="btn primary" onclick="saveTopServed()">儲存</button></div><div class="hint">再點一次座位圖上的同一組座位，可取消查看回到主畫面。</div>`;}
+function renderOrderPreview(){let box=$('orderPreview');if(!box)return;if(!viewOrderId){box.classList.add('hidden');box.innerHTML='';return}let o=state.orders.find(x=>x.id===viewOrderId);if(!o){viewOrderId=null;box.classList.add('hidden');box.innerHTML='';return}let time=orderTimeRange(o)||'未設定';let editing=editingOrderId===o.id;box.classList.remove('hidden');box.innerHTML=`<div class="previewTop"><div class="title">${editing?'正在編輯':'正在查看'}：${o.seats.join('、')}</div><button class="btn brown" onclick="checkout('${o.id}')">結帳清桌</button></div><div class="line">${o.type==='reservation'?'預約':'現場'}｜${o.pkg.fullName||o.pkg.name}｜${paymentSummary(o)}</div><div class="line">時段：${time}｜${orderTimeStatus(o)}</div><div class="line">飲料：</div><div class="line">${orderDrinkDetailTop(o)}</div><div class="line">甜點：</div><div class="line">${dessertDetailTop(o)}</div><div class="row" style="margin-top:10px;gap:10px">${editing?'<span class="hint">下方「座位飲料」已展開，可修改飲料與其他細項。</span>':`<button class="btn brown" onclick="showOrder('${o.id}','${o.seats[0]||''}')">編輯飲料/修改</button>`}<button class="btn primary" onclick="saveTopServed()">儲存</button></div><div class="hint">再點一次座位圖上的同一組座位，可取消查看回到主畫面。</div>`;}
 function toggleDessertServedTop(orderId,dessertId,checked){topDessertServedDraft[dessertId]=checked;renderOrderPreview();}
 function dessertDetailTop(o){let rows=[];desserts.forEach(d=>{let q=o.desserts?.[d.id]||0;if(q>0){let served=(topDessertServedDraft[d.id]!==undefined)?!!topDessertServedDraft[d.id]:!!(o.dessertServed?.[d.id]);let checked=served?'checked':'';let done=served?'done':'';let txt=served?'已送':'未送';rows.push(`<label class="drinkLine dessertServeRow"><span>${d.name} × ${q}</span><span class="topServeCtl"><input type="checkbox" ${checked} onchange="toggleDessertServedTop('${o.id}','${d.id}',this.checked)"> <span class="serveText ${done}">${txt}</span></span></label>`)}});return rows.length?rows.join(''):'無'}
 function toggleServedTop(orderId,seat,checked){topServedDraft[seat]=checked;renderOrderPreview();}
@@ -637,6 +758,40 @@ function renderReservationPlanner(){let box=$('pendingReservationCards');if(!box
 
 
 function drinkSortTime(o){return new Date(o.status==='reserved'?(o.startAt||o.createdAt):(o.createdAt||o.startAt||new Date())).getTime()}
+function drinkPriority(pd){
+ let d=pd?.drink;if(!d)return 999;
+ let n=d.name||'', t=d.temp||'';
+ if(n==='特選紅茶'&&t==='熱')return 1;
+ if(n==='茉香綠茶')return 1;
+ if(n==='水蜜桃蘋果茶')return 2;
+ if(n==='黃金柚子茶')return 2;
+ if(n==='特選紅茶'&&t==='冰')return 3;
+ if(n==='義式濃縮咖啡')return 4;
+ if(n==='手沖莊園濾掛咖啡')return 4;
+ if(n==='美式咖啡')return 4;
+ if(n==='柚香紅茶')return 5;
+ if(n==='時光鮮奶茶')return 6;
+ if(n==='拿鐵咖啡')return 7;
+ if(n==='太妃糖拿鐵')return 8;
+ return 99;
+}
+function drinkPriorityLabel(pd){
+ let p=drinkPriority(pd);
+ return ({1:'建議先做：先泡茶類',2:'建議先做：果茶類',3:'建議順序：冰紅茶',4:'建議順序：美式',5:'建議順序：柚香紅茶',6:'建議順序：鮮奶茶',7:'建議順序：拿鐵',8:'建議順序：太妃糖拿鐵'}[p]||'建議順序：一般品項');
+}
+function drinkBatchKey(pd){let d=pd?.drink;if(!d)return '';return `${d.name}${d.temp}`;}
+function queueBatchHint(it,items){
+ if(it.kind!=='drink')return '';
+ let key=drinkBatchKey(it.pd);if(!key)return '';
+ let fiveMin=5*60*1000;
+ let same=items.filter(x=>x.kind==='drink'&&drinkBatchKey(x.pd)===key&&Math.abs(x.time-it.time)<=fiveMin);
+ if(same.length>=2){
+   same.sort((a,b)=>a.time-b.time||seats.indexOf(a.seat||'')-seats.indexOf(b.seat||''));
+   let seatsTxt=same.map(x=>x.seat).join('、');
+   return `<div class="queueBatchHint">5分鐘內同品項 ${key} 共 ${same.length} 杯：${seatsTxt}</div>`;
+ }
+ return '';
+}
 function renderDrinkQueue(){
  let box=$('drinkQueueCards');if(!box)return;
  let items=[];
@@ -658,29 +813,29 @@ function renderDrinkQueue(){
      }
    });
  });
- items.sort((a,b)=>a.time-b.time || (a.kind==='drink'?0:1)-(b.kind==='drink'?0:1) || seats.indexOf(a.seat||'')-seats.indexOf(b.seat||''));
+ items.sort((a,b)=>a.time-b.time || (a.kind==='drink'?0:1)-(b.kind==='drink'?0:1) || (a.kind==='drink'?drinkPriority(a.pd):50)-(b.kind==='drink'?drinkPriority(b.pd):50) || String(drinkBatchKey(a.pd)).localeCompare(String(drinkBatchKey(b.pd))) || seats.indexOf(a.seat||'')-seats.indexOf(b.seat||''));
  if(!items.length){box.innerHTML='<div class="hint">目前沒有待製作 / 未送達的飲料或甜點。</div>';return}
  box.innerHTML=items.map((it,idx)=>{
    let o=it.order;
    let cls=it.min<0?'urgent':(it.min<=15?'hot':'');
-   let right=o.status==='reserved'?`預約 ${o.resvTime||fmtTime(o.startAt)}`:(it.min<0?`超時 ${Math.abs(it.min)}分`:`剩 ${it.min}分`);
+   let right=o.status==='reserved'?`預約 ${o.resvTime||fmtTime(o.startAt)}`:orderTimeStatus(o);
    if(it.kind==='drink'){
      let pd=it.pd,d=pd.drink;
      let sugar=pd.sugar?`｜${pd.sugar}`:'';
      let ice=pd.ice?`｜${pd.ice}`:'';
      let single=pd.single?'｜單點':'';
-     return `<div class="queueCard ${cls}"><div class="big">${idx+1}. 飲料｜${d.name}${d.temp}${sugar}${ice}${single}</div><div class="metaLine">${o.seats.join('、')}｜${it.seat}｜${o.name?o.name+'｜':''}${right}</div><div class="row" style="margin-top:8px"><button class="btn primary" onclick="markDrinkServed('${o.id}','${it.seat}')">已送達</button><button class="btn" onclick="showOrder('${o.id}','${it.seat}')">查看/修改</button></div></div>`
+     return `<div class="queueCard ${cls}"><div class="big">${idx+1}. <span class="queueSeatLead">${it.seat}</span> 的飲料｜${d.name}${d.temp}${sugar}${ice}${single}</div><div class="queuePriorityHint">${drinkPriorityLabel(pd)}</div>${queueBatchHint(it,items)}<div class="metaLine">同桌：${o.seats.join('、')}｜${o.name?o.name+'｜':''}${right}</div><div class="queueMiniRow">${renderMiniTableThumb(it.seat,(o.seats||[]).filter(s=>seatGroupKey(s)===seatGroupKey(it.seat)))}</div><div class="row" style="margin-top:8px"><button class="btn primary" onclick="markDrinkServed('${o.id}','${it.seat}')">已送達</button><button class="btn" onclick="showOrder('${o.id}','${it.seat}')">查看/修改</button></div></div>`
    }else{
      let d=it.dessert;
-     return `<div class="queueCard ${cls}"><div class="big">${idx+1}. 甜點｜${d.name} × ${it.qty}</div><div class="metaLine">${o.seats.join('、')}｜${o.name?o.name+'｜':''}${right}</div><div class="row" style="margin-top:8px"><button class="btn primary" onclick="markDessertServed('${o.id}','${d.id}')">已送達</button><button class="btn" onclick="showOrder('${o.id}','${(o.seats||[''])[0]}')">查看/修改</button></div></div>`
+     return `<div class="queueCard ${cls}"><div class="big">${idx+1}. <span class="queueSeatLead">${(o.seats||[''])[0]}</span> 這桌甜點｜${d.name} × ${it.qty}</div><div class="metaLine">同桌：${o.seats.join('、')}｜${o.name?o.name+'｜':''}${right}</div><div class="queueMiniRow">${renderMiniTableThumb((o.seats||[''])[0],(o.seats||[]).filter(s=>seatGroupKey(s)===seatGroupKey((o.seats||[''])[0])))}</div><div class="row" style="margin-top:8px"><button class="btn primary" onclick="markDessertServed('${o.id}','${d.id}')">已送達</button><button class="btn" onclick="showOrder('${o.id}','${(o.seats||[''])[0]}')">查看/修改</button></div></div>`
    }
  }).join('');
 }
 function markDrinkServed(orderId,seat){let o=state.orders.find(x=>x.id===orderId);if(!o||!o.drinks||!o.drinks[seat])return;o.drinks[seat].served=true;save();loadTopServedDraft(o);renderMap();renderCards();renderOrderPreview();renderDrinkQueue();}
 function markDessertServed(orderId,dessertId){let o=state.orders.find(x=>x.id===orderId);if(!o)return;if(!o.dessertServed)o.dessertServed={};o.dessertServed[dessertId]=true;save();loadTopServedDraft(o);renderMap();renderCards();renderOrderPreview();renderDrinkQueue();}
-function renderCards(){let html='';state.orders.slice().sort((a,b)=>(a.status==='reserved'?0:1)-(b.status==='reserved'?0:1)||new Date(a.createdAt)-new Date(b.createdAt)).forEach(o=>{let right=''; if(o.status==='active'&&o.endAt){let m=Math.ceil((new Date(o.endAt)-new Date())/60000);right=m<0?`<span class="warn">超時 ${Math.abs(m)} 分</span>`:`剩 ${m} 分`;} else if(o.status==='reserved'){right='預約'}
+function renderCards(){let html='';state.orders.slice().sort((a,b)=>(a.status==='reserved'?0:1)-(b.status==='reserved'?0:1)||new Date(a.createdAt)-new Date(b.createdAt)).forEach(o=>{let right=''; if(o.status==='active'&&o.endAt){let m=Math.ceil((new Date(o.endAt)-new Date())/60000);right=m<0?`<span class="warn">已開桌 ${orderElapsedMinutes(o)} 分｜超時 ${Math.abs(m)} 分</span>`:`已開桌 ${orderElapsedMinutes(o)} 分｜剩 ${m} 分`;} else if(o.status==='reserved'){right='預約'}
  let timeRange=orderTimeRange(o);let firstSeat=o.seats&&o.seats.length?o.seats[0]:'';let opened=viewOrderId===o.id?' opened':'';
- html+=`<div class="orderCard${opened}" onclick="viewOrderId==='${o.id}'?clearSelection():(viewOrderId='${o.id}',editingOrderId=null,selected=[],activeDrinkSeat=null,personDrinks={},dessertQty={cheese:0,basque:0},pkgQty={},renderAll())"><div class="top"><span>${o.name?o.name+'｜':''}${o.seats.join('、')}</span><span>${right}</span></div><div class="meta">${o.type==='reservation'?'預約':'現場'}｜${o.pkg.fullName||o.pkg.name}｜${o.pkg.time}分鐘｜${paymentSummary(o)}</div><div class="meta"><span class="timeRange">時段：${timeRange||'未設定'}</span></div><div class="meta">飲料：${orderDrinkDetail(o)}</div><div class="meta">甜點：${dessertSummary(o)}</div><div class="row" style="margin-top:8px" onclick="event.stopPropagation()">${o.status==='reserved'?`<button class="btn primary" onclick="startReserved('${o.id}')">到店／開始計時</button>`:''}<button class="btn brown" onclick="checkout('${o.id}')">結帳清桌</button><button class="btn" onclick="showOrder('${o.id}','${firstSeat}')">編輯/修改</button><button class="btn danger" onclick="deleteOrder('${o.id}')">刪除</button></div></div>`});$('activeCards').innerHTML=html||'<div class="hint">目前沒有進行中座位。</div>';
+ html+=`<div class="orderCard${opened}" onclick="viewOrderId==='${o.id}'?clearSelection():(viewOrderId='${o.id}',editingOrderId=null,selected=[],activeDrinkSeat=null,personDrinks={},dessertQty={cheese:0,basque:0},pkgQty={},renderAll())"><div class="top"><span>${o.name?o.name+'｜':''}${o.seats.join('、')}</span><span>${right}</span></div><div class="meta">${o.type==='reservation'?'預約':'現場'}｜${o.pkg.fullName||o.pkg.name}｜${o.pkg.time}分鐘｜${paymentSummary(o)}</div><div class="meta"><span class="timeRange">時段：${timeRange||'未設定'}｜${orderTimeStatus(o)}</span></div><div class="meta">飲料：${orderDrinkDetail(o)}</div><div class="meta">甜點：${dessertSummary(o)}</div><div class="row" style="margin-top:8px" onclick="event.stopPropagation()">${o.status==='reserved'?`<button class="btn primary" onclick="startReserved('${o.id}')">到店／開始計時</button>`:''}<button class="btn brown" onclick="checkout('${o.id}')">結帳清桌</button><button class="btn" onclick="showOrder('${o.id}','${firstSeat}')">編輯/修改</button><button class="btn danger" onclick="deleteOrder('${o.id}')">刪除</button></div></div>`});$('activeCards').innerHTML=html||'<div class="hint">目前沒有進行中座位。</div>';
  $('historyCards').innerHTML=renderHistoryCards(todayHistory(),true)||'<div class="hint">今天還沒有結帳紀錄。</div>';if($('todayDetailModal')&&!$('todayDetailModal').classList.contains('hidden'))renderTodayDetail();}
 function toggleEditSections(){let hide=isViewOnly();let ids=['pkgGrid','peopleDrinks','dessertGrid','totalMoney','calcHint'];ids.forEach(id=>{let el=$(id);if(el)el.classList.toggle('viewOnlyHide',hide);});document.querySelectorAll('.label').forEach(l=>{let t=l.innerText.trim();if(['套餐','座位飲料','甜點區'].includes(t))l.classList.toggle('viewOnlyHide',hide);});let total=document.querySelector('.total');if(total)total.classList.toggle('viewOnlyHide',hide);let typeRow=$('typeWalk')?.parentElement;if(typeRow)typeRow.classList.toggle('viewOnlyHide',hide);let nameRow=$('custName')?.closest('.grid2');if(nameRow)nameRow.classList.toggle('viewOnlyHide',hide);let drinkHint=$('peopleDrinks')?.previousElementSibling;if(drinkHint&&drinkHint.classList.contains('hint'))drinkHint.classList.toggle('viewOnlyHide',hide);}
 
@@ -689,11 +844,10 @@ function fitSeatMap(){
   if(!wrap||!map)return;
   let baseW=760, baseH=1165;
   let availW=Math.max(320,wrap.clientWidth-24);
-  let availH=Math.max(520,wrap.clientHeight-24);
-  let scale=Math.min(availW/baseW, availH/baseH);
+  let scale=availW/baseW;
   scale=Math.max(.72, Math.min(1.08, scale));
   map.style.setProperty('--mapScale', scale);
-  wrap.style.height=Math.ceil(baseH*scale+24)+'px';
+  wrap.style.height = Math.round(baseH*scale + 24) + 'px';
 }
 window.addEventListener('resize', fitSeatMap);
 function renderAll(){refreshPendingTimeOptions();autoRequestReservationNotify();checkOpeningReservationReminder();fitSeatMap();renderPackages();renderPeopleDrinks();renderDesserts();renderMap();renderCards();renderTotal();renderOrderPreview();renderDrinkQueue();toggleEditSections();}
