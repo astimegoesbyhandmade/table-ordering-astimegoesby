@@ -407,9 +407,11 @@ header{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.94);backdro
 
 
 </style>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
-<header><div><h1>🪑 時光造所｜座位控台</h1><div class="sub">連點座位 → 選套餐 → 點座位名字選飲料 → 送單開始計時</div></div><div class="pill" id="clock">--:--</div></header>
+<header><div><h1>🪑 時光造所｜座位控台</h1><div class="sub">連點座位 → 選套餐 → 點座位名字選飲料 → 送單開始計時</div></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end"><div class="pill" id="syncStatus">本機資料</div><div class="pill" id="clock">--:--</div></div></header>
 <div class="app">
 <section class="panel"><h2>座位圖</h2><div class="body"><div class="legend"><span class="tag"><i class="dot empty"></i>空位</span><span class="tag"><i class="dot sel"></i>已選</span><span class="tag"><i class="dot resv"></i>預約</span><span class="tag"><i class="dot busy"></i>使用中</span><span class="tag"><i class="dot soon"></i>剩15分</span><span class="tag"><i class="dot late"></i>超時</span><span class="tag"><i class="dot food"></i>飲料未送</span></div><div class="mapWrap"><div class="map" id="map">
 <div class="areaText" style="left:15px;top:150px">攝<br>影<br>棚</div><div class="divider v" style="left:82px;top:80px;height:380px"></div>
@@ -456,6 +458,16 @@ header{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.94);backdro
 <section class="panel"><h2>今日紀錄</h2><div class="body"><div class="row"><button class="btn" onclick="exportCSV()">匯出 CSV</button><button class="btn primary" onclick="openTodayDetailModal()">詳細資料</button><button class="btn" onclick="openHistoryModal()">歷史紀錄</button></div><div class="cards" id="historyCards"></div></div></section><div id="historyModal" class="modal hidden"><div class="modalBox"><div class="modalHead"><div class="modalTitle">歷史紀錄</div><button class="btn" onclick="closeHistoryModal()">關閉</button></div><div id="historyAllCards" class="cards"></div></div></div><div id="todayDetailModal" class="modal hidden"><div class="modalBox"><div class="modalHead"><div class="modalTitle">今日詳細資料</div><button class="btn" onclick="closeTodayDetailModal()">關閉</button></div><div id="todayDetailBox" class="cards"></div></div></div>
 </div>
 <script>
+const firebaseConfig = {
+  apiKey: "AIzaSyC2IAICewOcuIj3aWMO9AZpg3tj7AKXwfU",
+  authDomain: "astimegoesby-2025.firebaseapp.com",
+  databaseURL: "https://astimegoesby-2025-default-rtdb.firebaseio.com",
+  projectId: "astimegoesby-2025",
+  storageBucket: "astimegoesby-2025.firebasestorage.app",
+  messagingSenderId: "512097547664",
+  appId: "1:512097547664:web:4858792047682a01acaf15"
+};
+
 const $=id=>document.getElementById(id);
 const seats=[...document.querySelectorAll('.seat')].map(x=>x.dataset.seat);
 const seatLayout=Object.fromEntries([...document.querySelectorAll('.seat')].map(el=>[el.dataset.seat,{left:parseFloat((el.style.left||'0').replace('px',''))||0,top:parseFloat((el.style.top||'0').replace('px',''))||0}]));
@@ -521,10 +533,90 @@ const drinks=[
  {cat:'果茶',name:'水蜜桃蘋果茶',temp:'冰',price:160,sugar:['甜度固定'],ice:['正常冰','少冰','去冰']}
 ];
 const desserts=[{id:'cheese',name:'重乳酪蛋糕佐冰淇淋',price:180},{id:'basque',name:'今日甜點 巴斯克',price:100}];
-let state=JSON.parse(localStorage.getItem('seatSystemV10')||'{"orders":[],"history":[],"pendingReservations":[]}');if(!state.pendingReservations)state.pendingReservations=[];if(!state.reservationNotifyLog)state.reservationNotifyLog={};
+const LOCAL_KEY='seatSystemV10';
+const LIVE_PATH='seatSystemLive/state';
+let state=JSON.parse(localStorage.getItem(LOCAL_KEY)||'{"orders":[],"history":[],"pendingReservations":[]}');normalizeState(state);
+let db=null, liveRef=null, firebaseSyncReady=false, applyingRemote=false, lastSavedJson='';
+function normalizeState(s){
+  if(!s.orders)s.orders=[];
+  if(!s.history)s.history=[];
+  if(!s.pendingReservations)s.pendingReservations=[];
+  if(!s.reservationNotifyLog)s.reservationNotifyLog={};
+  return s;
+}
 let selected=[];let orderType='walkin';let pkgQty={};let drinkCat='咖啡';let activeDrinkSeat=null;let personDrinks={};let dessertQty={cheese:0,basque:0};let editingOrderId=null;let viewOrderId=null;let topServedDraft={};let topDessertServedDraft={};let arrangingReservationId=null;
 function isViewOnly(){return !!viewOrderId && !editingOrderId && !selected.length;}
-function save(){localStorage.setItem('seatSystemV10',JSON.stringify(state));}
+function save(){
+  normalizeState(state);
+  const json=JSON.stringify(state);
+  localStorage.setItem(LOCAL_KEY,json);
+  if(firebaseSyncReady && liveRef && !applyingRemote && json!==lastSavedJson){
+    lastSavedJson=json;
+    liveRef.set({
+      ...state,
+      updatedAt: new Date().toISOString(),
+      updatedBy: getDeviceId()
+    }).then(()=>setSyncStatus('已同步 Firebase')).catch(err=>{
+      console.warn('Firebase同步失敗',err);
+      setSyncStatus('同步失敗，已暫存在本機');
+    });
+    setSyncStatus('同步中...');
+  }
+}
+function getDeviceId(){
+  let id=localStorage.getItem('seatSystemDeviceId');
+  if(!id){
+    id='dev_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);
+    localStorage.setItem('seatSystemDeviceId',id);
+  }
+  return id;
+}
+function setSyncStatus(msg){
+  let el=document.getElementById('syncStatus');
+  if(el) el.textContent=msg;
+}
+function initFirebaseSync(){
+  try{
+    if(!window.firebase){setSyncStatus('Firebase SDK 未載入');return;}
+    if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
+    db=firebase.database();
+    liveRef=db.ref(LIVE_PATH);
+    firebaseSyncReady=true;
+    setSyncStatus('Firebase 連線中...');
+    liveRef.on('value',snap=>{
+      const remote=snap.val();
+      applyingRemote=true;
+      if(remote && (remote.orders||remote.history||remote.pendingReservations)){
+        state=normalizeState({
+          orders:remote.orders||[],
+          history:remote.history||[],
+          pendingReservations:remote.pendingReservations||[],
+          reservationNotifyLog:remote.reservationNotifyLog||{}
+        });
+        const json=JSON.stringify(state);
+        lastSavedJson=json;
+        localStorage.setItem(LOCAL_KEY,json);
+        renderAll();
+        setSyncStatus('已同步 Firebase');
+      }else{
+        lastSavedJson=JSON.stringify(state);
+        liveRef.set({
+          ...normalizeState(state),
+          updatedAt:new Date().toISOString(),
+          updatedBy:getDeviceId()
+        }).then(()=>setSyncStatus('已建立雲端資料'));
+      }
+      applyingRemote=false;
+    },err=>{
+      applyingRemote=false;
+      console.warn('Firebase讀取失敗',err);
+      setSyncStatus('Firebase讀取失敗');
+    });
+  }catch(e){
+    console.warn('Firebase初始化失敗',e);
+    setSyncStatus('Firebase初始化失敗');
+  }
+}
 function nowStr(){let d=new Date();let date=d.toLocaleDateString('zh-TW',{month:'2-digit',day:'2-digit',weekday:'short'});let time=d.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});return `${date} ${time}`;}function minToTime(dt,min){let d=new Date(dt.getTime()+min*60000);return d.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});}function uid(){return 'o'+Date.now()+Math.random().toString(16).slice(2)}
 function dateFromTimeValue(t){let d=new Date();if(t){let parts=t.split(':');d.setHours(Number(parts[0]),Number(parts[1]||0),0,0);}return d;}
 function fmtTime(v){return new Date(v).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',hour12:false});}
@@ -853,24 +945,7 @@ window.addEventListener('resize', fitSeatMap);
 function renderAll(){refreshPendingTimeOptions();autoRequestReservationNotify();checkOpeningReservationReminder();fitSeatMap();renderPackages();renderPeopleDrinks();renderDesserts();renderMap();renderCards();renderTotal();renderOrderPreview();renderDrinkQueue();toggleEditSections();}
 function tick(){$('clock').innerText=nowStr();checkOpeningReservationReminder();renderMap();renderCards();renderReservationPlanner();renderDrinkQueue();}setInterval(tick,30000);setInterval(()=>{$('clock').innerText=nowStr()},1000);
 function exportCSV(){let rows=[['姓名','類型','座位','套餐','金額','預約時間','開始','結束','飲料','甜點']];[...state.history,...state.orders].forEach(o=>rows.push([o.name||'',o.type==='reservation'?'預約':'現場',o.seats.join(' '),(o.pkg.fullName||o.pkg.name),o.total,o.resvTime||'',o.startAt?new Date(o.startAt).toLocaleString('zh-TW'):'',o.endAt?new Date(o.endAt).toLocaleString('zh-TW'):'',o.seats.map(s=>{let pd=o.drinks?.[s];return pd&&pd.drink?`${s}:${pd.drink.name}${pd.drink.temp}/${pd.sugar||''}/${pd.ice||''}/${pd.served?'已送':'未送'}`:''}).join(' | '),dessertSummary(o)]));let csv=rows.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(',')).join('\n');let blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='時光造所座位紀錄.csv';a.click();}
-setOrderType('walkin');renderAll();tick();$('historyModal').addEventListener('click',e=>{if(e.target.id==='historyModal')closeHistoryModal()});
+setOrderType('walkin');renderAll();tick();initFirebaseSync();$('historyModal').addEventListener('click',e=>{if(e.target.id==='historyModal')closeHistoryModal()});
 </script>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyBoJQexLHtfDJ8IdFYLbKMZ0r9oZ2rl41M",
-    authDomain: "table-ordering-astimegoesby.firebaseapp.com",
-    projectId: "table-ordering-astimegoesby",
-    storageBucket: "table-ordering-astimegoesby.firebasestorage.app",
-    messagingSenderId: "840639118111",
-    appId: "1:840639118111:web:d87ce0f9dbe59cbcfd0e2a",
-    measurementId: "G-T2X4YC9P2N"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  console.log("Firebase 初始化成功！");
-</script>
-
 </body>
 </html>
