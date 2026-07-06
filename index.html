@@ -2408,10 +2408,12 @@ function queueHotIceTogetherHint(it,items){
   let same=items.filter(x=>
     x.kind==='drink' &&
     drinkBaseBatchKey(x.pd)===base &&
-    Math.abs(x.time-it.time)<=fiveMin
+    (
+      Math.abs(x.time-it.time)<=fiveMin ||
+      x.order?.id===it.order?.id
+    )
   );
-  let orderIds=[...new Set(same.map(x=>x.order?.id).filter(Boolean))];
-  if(orderIds.length<2)return '';
+  if(same.length<2)return '';
   let temps=[...new Set(same.map(x=>drinkTempBatchKey(x.pd)).filter(Boolean))];
   let hasIce=temps.some(t=>t.includes('冰'));
   let hasHot=temps.some(t=>t.includes('熱'));
