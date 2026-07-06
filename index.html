@@ -1035,6 +1035,56 @@ body.queueOnlyMode #drinkQueueCards .queueCard.queueSide{
   }
 }
 
+
+/* active / reservation card seat thumbnail */
+#activeCards .activeCardGrid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 132px;
+  gap:12px;
+  align-items:center;
+}
+#activeCards .activeSeatThumbSide{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:88px;
+  border-left:1px dashed var(--line);
+  padding-left:8px;
+}
+#activeCards .activeSeatThumbSide .miniTableWrap{
+  margin:0!important;
+  transform:scale(.82);
+  transform-origin:center;
+}
+#activeCards .activeSeatThumbSide .miniTableTitle{
+  text-align:center;
+  font-size:12px;
+  margin-bottom:5px;
+}
+#activeCards .activeSeatThumbSide .miniSeatDot{
+  min-width:25px;
+  height:25px;
+  font-size:10px;
+}
+@media(max-width:700px){
+  #activeCards .activeCardGrid{
+    grid-template-columns:1fr;
+  }
+  #activeCards .activeSeatThumbSide{
+    border-left:0;
+    border-top:1px dashed var(--line);
+    padding-left:0;
+    padding-top:8px;
+    justify-content:flex-start;
+    min-height:74px;
+  }
+  #activeCards .activeSeatThumbSide .miniTableWrap{
+    transform:scale(.78);
+    transform-origin:left top;
+    margin-bottom:12px!important;
+  }
+}
+
 </style>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -1042,7 +1092,7 @@ body.queueOnlyMode #drinkQueueCards .queueCard.queueSide{
 <body>
 <header><div><h1>🪑 時光造所｜座位控台</h1><div class="sub">連點座位 → 選套餐 → 點座位名字選飲料 → 送單開始計時</div></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end"><div class="pill" id="syncStatus">本機資料</div><div class="pill" id="clock">--:--</div></div></header>
 <div class="app">
-<section class="panel"><h2>座位圖</h2><div class="body"><div class="legend"><span class="tag"><i class="dot empty"></i>空位</span><span class="tag"><i class="dot sel"></i>已選</span><span class="tag"><i class="dot resv"></i>預約</span><span class="tag"><i class="dot busy"></i>使用中</span><span class="tag"><i class="dot soon"></i>剩15分</span><span class="tag"><i class="dot late"></i>超時</span><span class="tag"><i class="dot food"></i>飲料未送</span></div><div class="mapWrap"><div class="map" id="map">
+<section class="panel"><h2>座位圖</h2><div class="body"><div class="legend"><span class="tag"><i class="dot empty"></i>空位</span><span class="tag"><i class="dot sel"></i>已選</span><span class="tag"><i class="dot resv"></i>預約</span><span class="tag"><i class="dot busy"></i>使用中</span><span class="tag"><i class="dot soon"></i>剩15分</span><span class="tag"><i class="dot late"></i>超時</span><span class="tag"><i class="dot food"></i>餐飲未送</span></div><div class="mapWrap"><div class="map" id="map">
 <div class="areaText" style="left:15px;top:150px">攝<br>影<br>棚</div><div class="divider v" style="left:82px;top:80px;height:380px"></div>
 <div class="tableRound" style="left:255px;top:20px;width:118px;height:118px">三朵花</div>
 <div class="seat" data-seat="F1" style="left:190px;top:45px">F1</div><div class="seat" data-seat="F2" style="left:385px;top:45px">F2</div><div class="seat" data-seat="F3" style="left:285px;top:145px">F3</div>
@@ -1517,7 +1567,20 @@ function createOrder(status){let occupied=selected.filter(s=>isSeatBusy(s));if(o
 function startReserved(id){let o=state.orders.find(x=>x.id===id);if(!o)return;let start=(o.type==='reservation'&&o.resvTime)?dateFromTimeValue(o.resvTime):new Date();o.status='active';o.startAt=start.toISOString();o.endAt=new Date(start.getTime()+o.pkg.time*60000).toISOString();save();renderAll();}
 function checkout(id){let o=state.orders.find(x=>x.id===id);if(!o)return;if(!confirm(`結帳清桌？\n${o.seats.join('、')}｜${paymentSummary(o)}`))return;o.status='done';o.doneAt=new Date().toISOString();state.history.unshift(o);state.orders=state.orders.filter(x=>x.id!==id);if(editingOrderId===id){selected=[];activeDrinkSeat=null;personDrinks={};dessertQty={cheese:0,basque:0};editingOrderId=null;$('custName').value='';$('resvTime').value='';}save();renderAll();}
 function deleteOrder(id){if(!confirm('取消這筆預約/開單？'))return;state.orders=state.orders.filter(x=>x.id!==id);if(editingOrderId===id){selected=[];activeDrinkSeat=null;personDrinks={};dessertQty={cheese:0,basque:0};editingOrderId=null;$('custName').value='';$('resvTime').value='';}save();renderAll();}function saveOrderEdit(){if(!editingOrderId){alert('目前沒有正在修改的座位');return}let o=state.orders.find(x=>x.id===editingOrderId);if(!o){editingOrderId=null;renderAll();return}o.name=$('custName').value.trim();o.type=orderType;o.pkg=packageSnapshot();o.drinks=JSON.parse(JSON.stringify(personDrinks));o.desserts=JSON.parse(JSON.stringify(dessertQty));if(!o.dessertServed)o.dessertServed={};Object.keys(o.desserts||{}).forEach(k=>{if((o.desserts[k]||0)<=0)delete o.dessertServed[k]});let c=calcTotal();o.total=c.total;o.paidAmount=c.paid;o.dueAmount=c.due;o.resvTime=$('resvTime').value||'';save();selected=[];activeDrinkSeat=null;personDrinks={};dessertQty={cheese:0,basque:0};editingOrderId=null;topServedDraft={};pkgQty={B:1};$('custName').value='';$('resvTime').value='';renderAll();}
-function renderMap(){document.querySelectorAll('.seat').forEach(el=>{let s=el.dataset.seat;el.className='seat';let o=isSeatBusy(s);let mini=''; if(selected.includes(s))el.classList.add('selected'); if(o&&(viewOrderId===o.id||editingOrderId===o.id))el.classList.add('selectedOrder'); if(o){ let now=new Date();let start=o.startAt?new Date(o.startAt):null;let started=(o.type==='reservation')?(start&&now>=start):(o.status==='active'); if(o.type==='reservation'&&!started){el.classList.add('reserved');}else{let left=o.endAt?(new Date(o.endAt)-now)/60000:999;el.classList.add(left<0?'late':left<=15?'soon':'busy');} let pd=o.drinks?.[s]; if(pd&&pd.drink&&!pd.served)el.classList.add('foodPending'); mini=(o.type==='reservation'&&o.resvTime)?((o.resvTime||'預約')+(o.endAt?'–'+fmtTime(o.endAt):'')):(o.endAt?fmtTime(o.endAt):''); }
+
+function hasUnservedDessert(o){
+  if(!o||!o.desserts)return false;
+  return desserts.some(d=>{
+    let q=Number(o.desserts?.[d.id]||0);
+    let served=!!(o.dessertServed?.[d.id]);
+    return q>0&&!served;
+  });
+}
+function hasUnservedItemForSeat(o,s){
+  let pd=o?.drinks?.[s];
+  return !!(pd&&pd.drink&&!pd.served) || hasUnservedDessert(o);
+}
+function renderMap(){document.querySelectorAll('.seat').forEach(el=>{let s=el.dataset.seat;el.className='seat';let o=isSeatBusy(s);let mini=''; if(selected.includes(s))el.classList.add('selected'); if(o&&(viewOrderId===o.id||editingOrderId===o.id))el.classList.add('selectedOrder'); if(o){ let now=new Date();let start=o.startAt?new Date(o.startAt):null;let started=(o.type==='reservation')?(start&&now>=start):(o.status==='active'); if(o.type==='reservation'&&!started){el.classList.add('reserved');}else{let left=o.endAt?(new Date(o.endAt)-now)/60000:999;el.classList.add(left<0?'late':left<=15?'soon':'busy');} if(hasUnservedItemForSeat(o,s))el.classList.add('foodPending'); mini=(o.type==='reservation'&&o.resvTime)?((o.resvTime||'預約')+(o.endAt?'–'+fmtTime(o.endAt):'')):(o.endAt?fmtTime(o.endAt):''); }
  el.innerHTML=s+(mini?`<span class="mini">${mini}</span>`:'');});}
 
 function instantSeatVisual(s){
@@ -1745,10 +1808,45 @@ function renderDrinkQueue(){
 }
 function markDrinkServed(orderId,seat){let o=state.orders.find(x=>x.id===orderId);if(!o||!o.drinks||!o.drinks[seat])return;o.drinks[seat].served=true;loadTopServedDraft(o);renderQueueFast();save();}
 function markDessertServed(orderId,dessertId){let o=state.orders.find(x=>x.id===orderId);if(!o)return;if(!o.dessertServed)o.dessertServed={};o.dessertServed[dessertId]=true;loadTopServedDraft(o);renderQueueFast();save();}
-function renderCards(){let html='';state.orders.slice().sort((a,b)=>(a.status==='reserved'?0:1)-(b.status==='reserved'?0:1)||new Date(a.createdAt)-new Date(b.createdAt)).forEach(o=>{let right=''; if(o.status==='active'&&o.endAt){let m=Math.ceil((new Date(o.endAt)-new Date())/60000);right=m<0?`<span class="warn">已開桌 ${orderElapsedMinutes(o)} 分｜超時 ${Math.abs(m)} 分</span>`:`已開桌 ${orderElapsedMinutes(o)} 分｜剩 ${m} 分`;} else if(o.status==='reserved'){right='預約'}
- let timeRange=orderTimeRange(o);let firstSeat=o.seats&&o.seats.length?o.seats[0]:'';let opened=viewOrderId===o.id?' opened':'';
- html+=`<div class="orderCard${opened}" onclick="viewOrderId==='${o.id}'?clearSelection():(viewOrderId='${o.id}',editingOrderId=null,selected=[],activeDrinkSeat=null,personDrinks={},dessertQty={cheese:0,basque:0},pkgQty={},renderAll())"><div class="top"><span>${o.name?o.name+'｜':''}${o.seats.join('、')}</span><span>${right}</span></div><div class="meta">${o.type==='reservation'?'預約':'現場'}｜${o.pkg.fullName||o.pkg.name}｜${o.pkg.time}分鐘｜${paymentSummary(o)}</div><div class="meta"><span class="timeRange">時段：${timeRange||'未設定'}｜${orderTimeStatus(o)}</span></div><div class="meta">飲料：${orderDrinkDetail(o)}</div><div class="meta">甜點：${dessertSummary(o)}</div><div class="row" style="margin-top:8px" onclick="event.stopPropagation()">${o.status==='reserved'?`<button class="btn primary" onclick="startReserved('${o.id}')">到店／開始計時</button>`:''}<button class="btn brown" onclick="checkout('${o.id}')">結帳清桌</button><button class="btn" onclick="showOrder('${o.id}','${firstSeat}')">編輯/修改</button><button class="btn danger" onclick="deleteOrder('${o.id}')">刪除</button></div></div>`});$('activeCards').innerHTML=html||'<div class="hint">目前沒有進行中座位。</div>';
- $('historyCards').innerHTML=renderHistoryCards(todayHistory(),true)||'<div class="hint">今天還沒有結帳紀錄。</div>';if($('todayDetailModal')&&!$('todayDetailModal').classList.contains('hidden'))renderTodayDetail();}
+function renderCards(){
+  let html='';
+  state.orders.slice()
+    .sort((a,b)=>(a.status==='reserved'?0:1)-(b.status==='reserved'?0:1)||new Date(a.createdAt)-new Date(b.createdAt))
+    .forEach(o=>{
+      let right='';
+      if(o.status==='active'&&o.endAt){
+        let m=Math.ceil((new Date(o.endAt)-new Date())/60000);
+        right=m<0?`<span class="warn">已開桌 ${orderElapsedMinutes(o)} 分｜超時 ${Math.abs(m)} 分</span>`:`已開桌 ${orderElapsedMinutes(o)} 分｜剩 ${m} 分`;
+      }else if(o.status==='reserved'){
+        right='預約';
+      }
+      let timeRange=orderTimeRange(o);
+      let firstSeat=o.seats&&o.seats.length?o.seats[0]:'';
+      let opened=viewOrderId===o.id?' opened':'';
+      let thumb=firstSeat?renderMiniTableThumb(firstSeat,o.seats||[]):'';
+      html+=`<div class="orderCard${opened}" onclick="viewOrderId==='${o.id}'?clearSelection():(viewOrderId='${o.id}',editingOrderId=null,selected=[],activeDrinkSeat=null,personDrinks={},dessertQty={cheese:0,basque:0},pkgQty={},renderAll())">
+        <div class="activeCardGrid">
+          <div class="activeCardInfo">
+            <div class="top"><span>${o.name?o.name+'｜':''}${o.seats.join('、')}</span><span>${right}</span></div>
+            <div class="meta">${o.type==='reservation'?'預約':'現場'}｜${o.pkg.fullName||o.pkg.name}｜${o.pkg.time}分鐘｜${paymentSummary(o)}</div>
+            <div class="meta"><span class="timeRange">時段：${timeRange||'未設定'}｜${orderTimeStatus(o)}</span></div>
+            <div class="meta">飲料：${orderDrinkDetail(o)}</div>
+            <div class="meta">甜點：${dessertSummary(o)}</div>
+            <div class="row" style="margin-top:8px" onclick="event.stopPropagation()">
+              ${o.status==='reserved'?`<button class="btn primary" onclick="startReserved('${o.id}')">到店／開始計時</button>`:''}
+              <button class="btn brown" onclick="checkout('${o.id}')">結帳清桌</button>
+              <button class="btn" onclick="showOrder('${o.id}','${firstSeat}')">編輯/修改</button>
+              <button class="btn danger" onclick="deleteOrder('${o.id}')">刪除</button>
+            </div>
+          </div>
+          <div class="activeSeatThumbSide">${thumb}</div>
+        </div>
+      </div>`;
+    });
+  $('activeCards').innerHTML=html||'<div class="hint">目前沒有進行中座位。</div>';
+  $('historyCards').innerHTML=renderHistoryCards(todayHistory(),true)||'<div class="hint">今天還沒有結帳紀錄。</div>';
+  if($('todayDetailModal')&&!$('todayDetailModal').classList.contains('hidden'))renderTodayDetail();
+}
 function toggleEditSections(){let hide=isViewOnly();let ids=['pkgGrid','peopleDrinks','dessertGrid','totalMoney','calcHint'];ids.forEach(id=>{let el=$(id);if(el)el.classList.toggle('viewOnlyHide',hide);});document.querySelectorAll('.label').forEach(l=>{let t=l.innerText.trim();if(['套餐','座位飲料','甜點區'].includes(t))l.classList.toggle('viewOnlyHide',hide);});let total=document.querySelector('.total');if(total)total.classList.toggle('viewOnlyHide',hide);let typeRow=$('typeWalk')?.parentElement;if(typeRow)typeRow.classList.toggle('viewOnlyHide',hide);let nameRow=$('custName')?.closest('.grid2');if(nameRow)nameRow.classList.toggle('viewOnlyHide',hide);let drinkHint=$('peopleDrinks')?.previousElementSibling;if(drinkHint&&drinkHint.classList.contains('hint'))drinkHint.classList.toggle('viewOnlyHide',hide);}
 
 function fitSeatMap(){
