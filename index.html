@@ -1153,40 +1153,83 @@ function applyRemoteState(remote){
   renderAllSafe();
   return true;
 }
+
+function startAppNow(){
+  try{
+    setOrderType('walkin');
+  }catch(e){console.warn('setOrderType 初始化失敗',e);}
+  try{
+    setSyncStatus('Firebase 連線中...');
+  }catch(e){}
+  try{
+    bootRenderSchedule();
+  }catch(e){
+    try{renderAllSafe();}catch(err){console.warn('初始畫面渲染失敗',err);}
+  }
+  try{
+    initFirebaseSync();
+  }catch(e){
+    console.warn('Firebase 啟動失敗',e);
+    setSyncStatus('Firebase啟動失敗，使用本機資料');
+    try{renderAllSafe();}catch(err){}
+  }
+  try{tick();}catch(e){}
+}
 function initFirebaseSync(){
   try{
-    if(!window.firebase){setSyncStatus('Firebase SDK 未載入，使用本機資料');renderAllSafe();return;}
+    setSyncStatus('Firebase 連線中...');
+    if(!window.firebase){
+      setSyncStatus('Firebase SDK 未載入，使用本機資料');
+      renderAllSafe();
+      return;
+    }
     if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
     db=firebase.database();
     liveRef=db.ref(LIVE_PATH);
     firebaseSyncReady=true;
-    setSyncStatus('Firebase 連線中...');
-    // 先畫本機資料，Firebase 回來再覆蓋成雲端資料
+
+    // 先用本機資料畫面，不要空白；接著立刻抓雲端
     renderAllSafe();
 
-    liveRef.on('value',snap=>{
-      applyingRemote=true;
+    liveRef.once('value').then(snap=>{
       const remote=snap.val();
+      applyingRemote=true;
       if(remote && (remote.orders||remote.history||remote.pendingReservations)){
         applyRemoteState(remote);
         setSyncStatus('已同步 Firebase');
       }else{
         lastSavedJson=JSON.stringify(normalizeState(state));
-        renderAllSafe();
         liveRef.set({
           ...normalizeState(state),
           updatedAt:new Date().toISOString(),
           updatedBy:getDeviceId()
         }).then(()=>setSyncStatus('已建立雲端資料')).catch(()=>setSyncStatus('雲端建立失敗，本機可用'));
+        renderAllSafe();
+      }
+      applyingRemote=false;
+    }).catch(err=>{
+      applyingRemote=false;
+      console.warn('Firebase首次讀取失敗',err);
+      setSyncStatus('Firebase讀取失敗，使用本機資料');
+      renderAllSafe();
+    });
+
+    liveRef.on('value',snap=>{
+      const remote=snap.val();
+      applyingRemote=true;
+      if(remote && (remote.orders||remote.history||remote.pendingReservations)){
+        applyRemoteState(remote);
+        setSyncStatus('已同步 Firebase');
       }
       applyingRemote=false;
     },err=>{
       applyingRemote=false;
-      console.warn('Firebase讀取失敗',err);
-      setSyncStatus('Firebase讀取失敗，使用本機資料');
+      console.warn('Firebase即時同步失敗',err);
+      setSyncStatus('Firebase同步失敗，使用本機資料');
       renderAllSafe();
     });
   }catch(e){
+    applyingRemote=false;
     console.warn('Firebase初始化失敗',e);
     setSyncStatus('Firebase初始化失敗，使用本機資料');
     renderAllSafe();
@@ -1693,10 +1736,16 @@ function closePendingModal(){
 }
 function togglePendingPanel(){openPendingModal();}
 
-function renderAll(){refreshPendingTimeOptions();autoRequestReservationNotify();checkOpeningReservationReminder();fitSeatMap();renderPackages();renderPeopleDrinks();renderDesserts();renderMap();renderCards();renderTotal();renderOrderPreview();renderDrinkQueue();toggleEditSections();renderTodayReservationReminder();}
+function renderAll(){refreshPendingTimeOptions();autoRequestReservationNotify();checkOpeningReservationReminder();fitSeatMap();renderPackages();renderPeopleDrinks();renderDesserts();renderMap();renderCards();renderReservationPlanner();renderTotal();renderOrderPreview();renderDrinkQueue();toggleEditSections();renderTodayReservationReminder();}
 function tick(){$('clock').innerText=nowStr();checkOpeningReservationReminder();renderMap();renderCards();renderReservationPlanner();renderDrinkQueue();renderTodayReservationReminder();}setInterval(tick,30000);setInterval(()=>{$('clock').innerText=nowStr()},1000);
 function exportCSV(){let rows=[['姓名','類型','座位','套餐','金額','預約時間','開始','結束','飲料','甜點']];[...state.history,...state.orders].forEach(o=>rows.push([o.name||'',o.type==='reservation'?'預約':'現場',o.seats.join(' '),(o.pkg.fullName||o.pkg.name),o.total,o.resvTime||'',o.startAt?new Date(o.startAt).toLocaleString('zh-TW'):'',o.endAt?new Date(o.endAt).toLocaleString('zh-TW'):'',o.seats.map(s=>{let pd=o.drinks?.[s];return pd&&pd.drink?`${s}:${pd.drink.name}${pd.drink.temp}/${pd.sugar||''}/${pd.ice||''}/${pd.served?'已送':'未送'}`:''}).join(' | '),dessertSummary(o)]));let csv=rows.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(',')).join('\n');let blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='時光造所座位紀錄.csv';a.click();}
-setOrderType('walkin');bootRenderSchedule();tick();initFirebaseSync();$('historyModal').addEventListener('click',e=>{if(e.target.id==='historyModal')closeHistoryModal()});
+
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',startAppNow,{once:true});
+}else{
+  startAppNow();
+}
+$('historyModal').addEventListener('click',e=>{if(e.target.id==='historyModal')closeHistoryModal()});
 </script>
 </body>
 </html>
