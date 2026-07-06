@@ -1085,6 +1085,53 @@ body.queueOnlyMode #drinkQueueCards .queueCard.queueSide{
   }
 }
 
+
+/* edit jump highlight */
+.editJumpFlash{
+  animation: editJumpFlashAnim 1.2s ease 1;
+  box-shadow:0 0 0 5px rgba(255,127,181,.22)!important;
+}
+@keyframes editJumpFlashAnim{
+  0%{box-shadow:0 0 0 8px rgba(255,127,181,.35)}
+  100%{box-shadow:0 0 0 0 rgba(255,127,181,0)}
+}
+
+
+/* jump to top order detail */
+#orderPreview.editJumpFlash{
+  animation: editJumpFlashAnim 1.2s ease 1;
+  box-shadow:0 0 0 5px rgba(255,127,181,.26)!important;
+  border-color:#ff7fb5!important;
+}
+
+
+
+/* mini table unified food serving state */
+.miniSeatDot.unservedFood{
+  background:#e7d5ff!important;
+  border-color:#b995f4!important;
+  color:#4f2a84!important;
+  box-shadow:0 0 0 4px rgba(185,149,244,.22)!important;
+}
+.miniSeatDot.servedFood{
+  background:#c9f7d5!important;
+  border-color:#74c69d!important;
+  color:#24583a!important;
+  box-shadow:0 0 0 4px rgba(116,198,157,.22)!important;
+}
+.miniSeatDot.servedFood::after{
+  content:'✓';
+  position:absolute;
+  right:-4px;
+  top:-7px;
+  font-size:11px;
+  font-weight:1000;
+  color:#14884b;
+  background:#fff;
+  border-radius:999px;
+  line-height:1;
+}
+
 </style>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -1158,9 +1205,34 @@ const seatLayout=Object.fromEntries([...document.querySelectorAll('.seat')].map(
 function seatGroupKey(seat){let m=String(seat||'').match(/^[A-Za-z]+/);return m?m[0]:''}
 function seatsOfGroup(group){return seats.filter(s=>seatGroupKey(s)===group)}
 function tableDisplayName(group){return ({A:'大桌',B:'小桌',C:'露營',D:'F4',E:'發發',F:'三朵花',G:'五月花'}[group]||group)}
+
+function findOrderForMiniThumb(focusSeat,activeSeats=[]){
+  let seatList=[focusSeat,...(activeSeats||[])].filter(Boolean);
+  return state.orders.find(o=>(o.seats||[]).some(s=>seatList.includes(s)))||null;
+}
+function isSeatDrinkServedForMini(seat,order=null){
+  let o=order || state.orders.find(x=>(x.seats||[]).includes(seat));
+  let pd=o?.drinks?.[seat];
+  return !!(pd&&pd.drink&&pd.served);
+}
+
+function miniSeatFoodStatus(seat,order=null,activeSeats=[]){
+  let o=order || state.orders.find(x=>(x.seats||[]).includes(seat));
+  if(!o || !(activeSeats||[]).includes(seat))return '';
+  let pd=o?.drinks?.[seat];
+  let hasDrink=!!(pd&&pd.drink);
+  let drinkUnserved=hasDrink&&!pd.served;
+  let hasDessert=desserts.some(d=>Number(o.desserts?.[d.id]||0)>0);
+  let dessertUnserved=hasUnservedDessert(o);
+  let hasFood=hasDrink||hasDessert;
+  if(!hasFood)return '';
+  if(drinkUnserved||dessertUnserved)return 'unservedFood';
+  return 'servedFood';
+}
 function renderMiniTableThumb(focusSeat,activeSeats=[]){
   let group=seatGroupKey(focusSeat);if(!group)return '';
   let groupSeats=seatsOfGroup(group);if(!groupSeats.length)return '';
+  let order=findOrderForMiniThumb(focusSeat,activeSeats);
   let pts=groupSeats.map(s=>({seat:s,left:seatLayout[s]?.left||0,top:seatLayout[s]?.top||0}));
   let minX=Math.min(...pts.map(p=>p.left)), maxX=Math.max(...pts.map(p=>p.left));
   let minY=Math.min(...pts.map(p=>p.top)), maxY=Math.max(...pts.map(p=>p.top));
@@ -1168,17 +1240,19 @@ function renderMiniTableThumb(focusSeat,activeSeats=[]){
   let scale=Math.min(0.48,150/rawW,110/rawH);
   let width=Math.round(rawW*scale), height=Math.round(rawH*scale);
   let centerX=((minX+maxX)/2-minX+35)*scale, centerY=((minY+maxY)/2-minY+35)*scale;
-  let shapeClass=(groupSeats.length>=5||group==='G'||group==='D')?'round':'rect';
+  // 小縮圖中央桌型：大桌(A)改成長方形，其餘依原本桌型顯示
+  let shapeClass=((group==='F'||group==='G'||group==='D')?'round':'rect');
   let shapeW=Math.max(34,Math.min(66,(maxX-minX+28)*0.42*scale+20));
   let shapeH=Math.max(24,Math.min(56,(maxY-minY+28)*0.42*scale+14));
   let dots=pts.map(p=>{
     let x=Math.round((p.left-minX+35)*scale), y=Math.round((p.top-minY+35)*scale);
     let cls='miniSeatDot';
     if(activeSeats.includes(p.seat))cls+=' inOrder';
+    let foodStatus=miniSeatFoodStatus(p.seat,order,activeSeats); if(foodStatus)cls+=' '+foodStatus;
     if(p.seat===focusSeat)cls+=' focus';
     return `<div class="${cls}" style="left:${x}px;top:${y}px">${p.seat}</div>`;
   }).join('');
-  return `<div class="miniTableWrap"><div class="miniTableTitle">${tableDisplayName(group)}位置</div><div class="miniTable" style="width:${width}px;height:${height}px"><div class="miniTableShape ${shapeClass}" style="left:${centerX}px;top:${centerY}px;width:${shapeW}px;height:${shapeH}px">${tableDisplayName(group)}</div>${dots}</div></div>`;
+  return `<div class="miniTableWrap"><div class="miniTable" style="width:${width}px;height:${height}px"><div class="miniTableShape ${shapeClass}" style="left:${centerX}px;top:${centerY}px;width:${shapeW}px;height:${shapeH}px">${tableDisplayName(group)}</div>${dots}</div></div>`;
 }
 const packages=[
  {id:'D0',name:'單點飲料｜不做手作',price:0,time:90,drinkBase:0,people:1,drinksIncluded:0,desc:'只點飲料90分'},
@@ -1219,6 +1293,7 @@ const drinks=[
 const desserts=[{id:'cheese',name:'重乳酪蛋糕佐冰淇淋',price:180},{id:'basque',name:'今日甜點 巴斯克',price:100}];
 const LOCAL_KEY='seatSystemV10';
 const LIVE_PATH='seatSystemLive/state';
+const POS_IMPORT_PATH='seatToPosImport/current';
 let state=JSON.parse(localStorage.getItem(LOCAL_KEY)||'{"orders":[],"history":[],"pendingReservations":[]}');normalizeState(state);
 let db=null, liveRef=null, firebaseSyncReady=false, applyingRemote=false, lastSavedJson='';
 function normalizeState(s){
@@ -1564,8 +1639,183 @@ function clearSelection(){selected=[];activeDrinkSeat=null;personDrinks={};desse
 function preRegister(){if(orderType!=='reservation'){alert('請先選「預約」');return} if(!selected.length){alert('先選座位');return} let time=$('resvTime').value;if(!time){alert('請填預約時間');return} createOrder('reserved');}
 function sendOrder(){if(!selected.length){alert('先選座位');return} createOrder('active');}
 function createOrder(status){let occupied=selected.filter(s=>isSeatBusy(s));if(occupied.length){alert('這些座位已被使用或預約：'+occupied.join('、'));return} let p=packageSnapshot(), c=calcTotal(), now=new Date();let resvTime=$('resvTime').value||'';let startTime=orderStartTime(status,p,resvTime);let drinksObj=JSON.parse(JSON.stringify(personDrinks));let dessertObj=JSON.parse(JSON.stringify(dessertQty));state.orders.push({id:uid(),status,type:orderType,name:$('custName').value.trim(),seats:[...selected],pkg:p,drinks:drinksObj,desserts:dessertObj,dessertServed:{},total:c.total,paidAmount:c.paid,dueAmount:c.due,createdAt:now.toISOString(),startAt:startTime.toISOString(),resvTime,endAt:new Date(startTime.getTime()+p.time*60000).toISOString()});save();editingOrderId=null;clearSelection();}
+
+const POS_PACKAGE_MAP={
+  A:{productId:'GOESBY0A29',name:'串珠A單人沒飲料',price:190},
+  B:{productId:'GOESBY0A23',name:'串珠B單人含飲料',price:299},
+  C:{productId:'GOESBY0A24',name:'串珠C雙人含飲料',price:550},
+  WA:{productId:'GOESBY0A25',name:'水彩A',price:699},
+  WB:{productId:'GOESBY0A26',name:'水彩B',price:750},
+  WC:{productId:'GOESBY0A27',name:'水彩C',price:799},
+  WD:{productId:'GOESBY0A28',name:'水彩D',price:899}
+};
+function posDrinkBaseName(name){
+  return String(name||'')
+    .replace('拿鐵咖啡','拿鐵')
+    .replace('時光鮮奶茶','鮮奶茶')
+    .replace('黃金柚子茶','柚子茶')
+    .replace('手沖莊園濾掛咖啡','濾掛咖啡');
+}
+function posDrinkLabel(d,amount,isUpgrade){
+  let base=posDrinkBaseName(d.name);
+  let temp=d.temp?`(${d.temp})`:'';
+  return isUpgrade?`${base}${temp}+${amount}`:`${base}${temp}`;
+}
+function orderPackageQtyForPOS(o){
+  let qty={};
+  if(o?.pkg?.qty && Object.keys(o.pkg.qty).length){
+    qty={...o.pkg.qty};
+  }else if(o?.pkg?.id && !['NONE','MULTI','D0'].includes(o.pkg.id)){
+    qty[o.pkg.id]=1;
+  }
+  return qty;
+}
+function buildPOSPayloadFromOrder(o){
+  let items=[];
+  let isReservation=o.type==='reservation';
+  let orderLabel=`${(o.seats||[]).join('、')}｜${isReservation?'預約':'現場'}`;
+
+  // 規則：
+  // 預約客：套餐本體已線上刷卡，POS 只送現場應收 + $0 飲料紀錄
+  // 現場客：POS 送套餐本體 + 飲料加價/單點 + 甜點
+  if(!isReservation){
+    let qty=orderPackageQtyForPOS(o);
+    Object.keys(qty).forEach(id=>{
+      let q=Number(qty[id]||0);
+      if(q<=0 || id==='D0')return;
+      let map=POS_PACKAGE_MAP[id]||{};
+      let pack=packages.find(p=>p.id===id)||{};
+      for(let i=0;i<q;i++){
+        items.push({
+          type:'product',
+          productId:map.productId||'',
+          name:map.name||packageShortName(id),
+          price:Number(map.price||pack.price||0),
+          source:'package'
+        });
+      }
+    });
+  }
+
+  let includedLeft=Number(o?.pkg?.includedDrinks||0)||0;
+  (o.seats||[]).forEach(s=>{
+    let pd=o.drinks?.[s];
+    let d=pd?.drink;
+    if(!d)return;
+
+    let isIncluded=(!pd.single && includedLeft>0);
+    if(isIncluded)includedLeft--;
+
+    let charge=isIncluded?Math.max(0,Number(d.price||0)-120):Number(d.price||0);
+    let source='';
+    let name='';
+
+    if(isIncluded){
+      if(charge>0){
+        source='drinkUpgrade';
+        name=`座位飲料加價｜${s} ${posDrinkLabel(d,charge,true)}`;
+      }else{
+        source='drinkIncludedRecord';
+        name=`座位飲料｜${s} ${posDrinkLabel(d,0,false)}｜套餐內含`;
+      }
+    }else{
+      // 沒有被套餐含到的飲料，一律視為現場應收單點飲料
+      if(charge<=0)return;
+      source='drinkSingle';
+      name=`座位單點飲料｜${s} ${posDrinkLabel(d,charge,false)}`;
+    }
+
+    let opts=[pd.sugar,pd.ice].filter(Boolean).join(' / ');
+    if(opts)name+=`｜${opts}`;
+    items.push({
+      type:'custom',
+      name,
+      price:charge,
+      source
+    });
+  });
+
+  desserts.forEach(d=>{
+    let q=Number(o.desserts?.[d.id]||0);
+    for(let i=0;i<q;i++){
+      items.push({
+        type:'custom',
+        name:`座位甜點｜${d.name}`,
+        price:Number(d.price||0),
+        source:'dessert'
+      });
+    }
+  });
+
+  return {
+    id:'seatpos_'+o.id+'_'+Date.now(),
+    source:'seatSystem',
+    orderId:o.id,
+    seats:o.seats||[],
+    orderType:o.type||'walkin',
+    orderLabel,
+    customer:o.name||'',
+    createdAt:new Date().toISOString(),
+    items,
+    total:items.reduce((sum,it)=>sum+Number(it.price||0),0),
+    note:isReservation
+      ? `座位系統匯入｜${orderLabel}｜預約套餐本體不匯入，僅現場應收＋飲料紀錄`
+      : `座位系統匯入｜${orderLabel}｜現場客含套餐本體＋加購`
+  };
+}
+function sendOrderToPOS(orderId,silent=false){
+  let o=state.orders.find(x=>x.id===orderId);
+  if(!o){if(!silent)alert('找不到這筆座位資料');return Promise.resolve(false);}
+  if(o.posSentAt){
+    if(silent)return Promise.resolve(false);
+    if(!confirm('這筆已經送過 POS，要再送一次嗎？'))return Promise.resolve(false);
+  }
+  let payload=buildPOSPayloadFromOrder(o);
+  if(!payload.items.length){
+    if(!silent)alert('這筆沒有需要匯入 POS 的應收項目。');
+    return Promise.resolve(false);
+  }
+  if(!db){
+    if(!silent)alert('Firebase 尚未連線，暫時不能送到 POS。');
+    return Promise.reject(new Error('Firebase not ready'));
+  }
+  return db.ref(POS_IMPORT_PATH).set(payload).then(()=>{
+    o.posSentAt=new Date().toISOString();
+    o.posSentTotal=payload.total;
+    save();
+    renderAll();
+    if(!silent)alert(`已送到 POS 當前清單：$${payload.total}`);
+    return true;
+  }).catch(err=>{
+    console.warn('送到 POS 失敗',err);
+    if(!silent)alert('送到 POS 失敗，請確認 POS 測試版有開啟。');
+    throw err;
+  });
+}
+function finishCheckoutClearSeat(id){
+  let o=state.orders.find(x=>x.id===id);
+  if(!o)return;
+  o.status='done';
+  o.doneAt=new Date().toISOString();
+  state.history.unshift(o);
+  state.orders=state.orders.filter(x=>x.id!==id);
+  if(editingOrderId===id){
+    selected=[];activeDrinkSeat=null;personDrinks={};dessertQty={cheese:0,basque:0};editingOrderId=null;$('custName').value='';$('resvTime').value='';
+  }
+  save();
+  renderAll();
+}
 function startReserved(id){let o=state.orders.find(x=>x.id===id);if(!o)return;let start=(o.type==='reservation'&&o.resvTime)?dateFromTimeValue(o.resvTime):new Date();o.status='active';o.startAt=start.toISOString();o.endAt=new Date(start.getTime()+o.pkg.time*60000).toISOString();save();renderAll();}
-function checkout(id){let o=state.orders.find(x=>x.id===id);if(!o)return;if(!confirm(`結帳清桌？\n${o.seats.join('、')}｜${paymentSummary(o)}`))return;o.status='done';o.doneAt=new Date().toISOString();state.history.unshift(o);state.orders=state.orders.filter(x=>x.id!==id);if(editingOrderId===id){selected=[];activeDrinkSeat=null;personDrinks={};dessertQty={cheese:0,basque:0};editingOrderId=null;$('custName').value='';$('resvTime').value='';}save();renderAll();}
+function checkout(id){
+  let o=state.orders.find(x=>x.id===id);
+  if(!o)return;
+  if(!confirm(`送到 POS 並結帳清桌？\n${o.seats.join('、')}｜${paymentSummary(o)}\n\n預約客只匯入現場應收＋$0飲料紀錄；現場客會匯入套餐本體＋加購。`))return;
+  sendOrderToPOS(id,true)
+    .then(()=>finishCheckoutClearSeat(id))
+    .catch(()=>{
+      if(confirm('POS 匯入失敗，仍要清桌嗎？'))finishCheckoutClearSeat(id);
+    });
+}
 function deleteOrder(id){if(!confirm('取消這筆預約/開單？'))return;state.orders=state.orders.filter(x=>x.id!==id);if(editingOrderId===id){selected=[];activeDrinkSeat=null;personDrinks={};dessertQty={cheese:0,basque:0};editingOrderId=null;$('custName').value='';$('resvTime').value='';}save();renderAll();}function saveOrderEdit(){if(!editingOrderId){alert('目前沒有正在修改的座位');return}let o=state.orders.find(x=>x.id===editingOrderId);if(!o){editingOrderId=null;renderAll();return}o.name=$('custName').value.trim();o.type=orderType;o.pkg=packageSnapshot();o.drinks=JSON.parse(JSON.stringify(personDrinks));o.desserts=JSON.parse(JSON.stringify(dessertQty));if(!o.dessertServed)o.dessertServed={};Object.keys(o.desserts||{}).forEach(k=>{if((o.desserts[k]||0)<=0)delete o.dessertServed[k]});let c=calcTotal();o.total=c.total;o.paidAmount=c.paid;o.dueAmount=c.due;o.resvTime=$('resvTime').value||'';save();selected=[];activeDrinkSeat=null;personDrinks={};dessertQty={cheese:0,basque:0};editingOrderId=null;topServedDraft={};pkgQty={B:1};$('custName').value='';$('resvTime').value='';renderAll();}
 
 function hasUnservedDessert(o){
@@ -1596,7 +1846,71 @@ function instantSeatVisual(s){
 }
 function seatClick(e){let s=e.currentTarget.dataset.seat;let o=isSeatBusy(s); if(arrangingReservationId){if(o){alert('這個座位目前已被使用或預約，不能選。');return}let r=state.pendingReservations.find(x=>x.id===arrangingReservationId);let max=r?Number(r.people):99;if(selected.includes(s)){selected=selected.filter(x=>x!==s)}else{if(selected.length>=max){alert('已經選滿 '+max+' 個座位囉');return}selected.push(s)}renderMap();renderReservationPlanner();renderTodayReservationReminder();return} if(o){if(viewOrderId===o.id){clearSelection();return}viewOrderId=o.id;editingOrderId=null;selected=[];activeDrinkSeat=null;personDrinks={};dessertQty={cheese:0,basque:0};pkgQty={};loadTopServedDraft(o);renderAll();return} if(selected.includes(s)){selected=selected.filter(x=>x!==s); if(activeDrinkSeat===s)activeDrinkSeat=null;}else selected.push(s);instantSeatVisual(s);viewOrderId=null;setTimeout(()=>{renderPackages();renderPeopleDrinks();renderMap();renderCards();renderTotal();renderOrderPreview();},0);}
 document.querySelectorAll('.seat').forEach(el=>el.addEventListener('click',seatClick));
-function showOrder(id,focusSeat=null){let o=state.orders.find(x=>x.id===id); if(!o)return; viewOrderId=o.id; editingOrderId=id; loadTopServedDraft(o); selected=[];personDrinks=JSON.parse(JSON.stringify(o.drinks||{}));dessertQty=JSON.parse(JSON.stringify(o.desserts||{cheese:0}));selected=[...o.seats];activeDrinkSeat=(focusSeat&&selected.includes(focusSeat))?focusSeat:(selected[0]||null);orderType=o.type;pkgQty=o.pkg?.qty?JSON.parse(JSON.stringify(o.pkg.qty)):(o.pkg?.id&&o.pkg.id!=='MULTI'?{[o.pkg.id]:o.pkg.qty||1}:{});$('custName').value=o.name||'';$('resvTime').value=o.resvTime||'';setOrderType(orderType);renderAll();}
+
+
+
+function jumpToOrderEditorInstant(){
+  try{
+    let target=$('orderPreview') || $('quickOrderPanel') || document.querySelector('.panel.quick');
+    if(target){
+      target.scrollIntoView({behavior:'auto',block:'start'});
+      target.classList.add('editJumpFlash');
+      setTimeout(()=>target.classList.remove('editJumpFlash'),900);
+    }
+  }catch(e){}
+}
+function renderEditorOnlyFast(){
+  try{renderOrderPreview();}catch(e){}
+  try{renderPackages();}catch(e){}
+  try{renderPeopleDrinks();}catch(e){}
+  try{renderDesserts();}catch(e){}
+  try{renderTotal();}catch(e){}
+  try{toggleEditSections();}catch(e){}
+}
+function renderRestAfterEdit(){
+  setTimeout(()=>{
+    try{renderMap();}catch(e){}
+    try{renderCards();}catch(e){}
+    try{renderDrinkQueue();}catch(e){}
+    try{renderTodayReservationReminder();}catch(e){}
+  },80);
+}
+function editOrderFromButton(ev,id,focusSeat=null){
+  if(ev){
+    try{ev.preventDefault();}catch(e){}
+    try{ev.stopPropagation();}catch(e){}
+    try{ev.stopImmediatePropagation();}catch(e){}
+  }
+  jumpToOrderEditorInstant();
+  showOrder(id,focusSeat);
+  return false;
+}
+function jumpToOrderEditor(){
+  jumpToOrderEditorInstant();
+}
+function showOrder(id,focusSeat=null){
+  let o=state.orders.find(x=>x.id===id);
+  if(!o)return false;
+
+  // 先設定狀態，立刻跳到右側快速開單細項，不等整站重畫
+  viewOrderId=o.id;
+  editingOrderId=id;
+  loadTopServedDraft(o);
+  selected=[...(o.seats||[])];
+  personDrinks=JSON.parse(JSON.stringify(o.drinks||{}));
+  dessertQty=JSON.parse(JSON.stringify(o.desserts||{cheese:0,basque:0}));
+  activeDrinkSeat=(focusSeat&&selected.includes(focusSeat))?focusSeat:(selected[0]||null);
+  orderType=o.type||'walkin';
+  pkgQty=o.pkg?.qty?JSON.parse(JSON.stringify(o.pkg.qty)):(o.pkg?.id&&o.pkg.id!=='MULTI'?{[o.pkg.id]:o.pkg.qty||1}:{});
+  if($('custName'))$('custName').value=o.name||'';
+  if($('resvTime'))$('resvTime').value=o.resvTime||'';
+
+  setOrderType(orderType);
+  renderEditorOnlyFast();
+  jumpToOrderEditorInstant();
+  renderRestAfterEdit();
+  return false;
+}
 function orderElapsedMinutes(o){
   if(!o||!o.startAt)return 0;
   return Math.max(0,Math.floor((new Date()-new Date(o.startAt))/60000));
@@ -1609,7 +1923,7 @@ function orderTimeStatus(o){
 }
 function orderTimeRange(o){let start='';let end='';if(o.type==='reservation'&&o.resvTime){start=o.resvTime}else if(o.startAt){start=fmtTime(o.startAt)};if(o.endAt){end=fmtTime(o.endAt)};return (start&&end)?`${start}–${end}`:(start||end||'')}
 function orderDrinkDetail(o){let lines=o.seats.map(s=>{let pd=o.drinks?.[s];if(!pd||!pd.drink)return '';let parts=[`${s}: ${pd.drink.name}${pd.drink.temp}${pd.single?'（單點）':''}`];if(pd.sugar)parts.push(pd.sugar);if(pd.ice)parts.push(pd.ice);let check=pd.served?'<span class="checkOk" title="已送達"></span>':'';return `<span class="drinkLine">${parts.join(' ')} ${check}</span>`}).filter(Boolean);return lines.length?lines.join(''):'未選';}
-function renderOrderPreview(){let box=$('orderPreview');if(!box)return;if(!viewOrderId){box.classList.add('hidden');box.innerHTML='';return}let o=state.orders.find(x=>x.id===viewOrderId);if(!o){viewOrderId=null;box.classList.add('hidden');box.innerHTML='';return}let time=orderTimeRange(o)||'未設定';let editing=editingOrderId===o.id;box.classList.remove('hidden');box.innerHTML=`<div class="previewTop"><div class="title">${editing?'正在編輯':'正在查看'}：${o.seats.join('、')}</div><button class="btn brown" onclick="checkout('${o.id}')">結帳清桌</button></div><div class="line">${o.type==='reservation'?'預約':'現場'}｜${o.pkg.fullName||o.pkg.name}｜${paymentSummary(o)}</div><div class="line">時段：${time}｜${orderTimeStatus(o)}</div><div class="line">飲料：</div><div class="line">${orderDrinkDetailTop(o)}</div><div class="line">甜點：</div><div class="line">${dessertDetailTop(o)}</div><div class="row" style="margin-top:10px;gap:10px">${editing?'<span class="hint">下方「座位飲料」已展開，可修改飲料與其他細項。</span>':`<button class="btn brown" onclick="showOrder('${o.id}','${o.seats[0]||''}')">編輯飲料/修改</button>`}<button class="btn primary" onclick="saveTopServed()">儲存</button></div><div class="hint">再點一次座位圖上的同一組座位，可取消查看回到主畫面。</div>`;}
+function renderOrderPreview(){let box=$('orderPreview');if(!box)return;if(!viewOrderId){box.classList.add('hidden');box.innerHTML='';return}let o=state.orders.find(x=>x.id===viewOrderId);if(!o){viewOrderId=null;box.classList.add('hidden');box.innerHTML='';return}let time=orderTimeRange(o)||'未設定';let editing=editingOrderId===o.id;box.classList.remove('hidden');box.innerHTML=`<div class="previewTop"><div class="title">${editing?'正在編輯':'正在查看'}：${o.seats.join('、')}</div><button class="btn brown" onclick="checkout('${o.id}')">送POS／結帳清桌</button></div><div class="line">${o.type==='reservation'?'預約':'現場'}｜${o.pkg.fullName||o.pkg.name}｜${paymentSummary(o)}</div><div class="line">時段：${time}｜${orderTimeStatus(o)}</div><div class="line">飲料：</div><div class="line">${orderDrinkDetailTop(o)}</div><div class="line">甜點：</div><div class="line">${dessertDetailTop(o)}</div><div class="row" style="margin-top:10px;gap:10px">${editing?'<span class="hint">下方「座位飲料」已展開，可修改飲料與其他細項。</span>':`<button class="btn brown" onclick="return editOrderFromButton(event,'${o.id}','${o.seats[0]||''}')">編輯飲料/修改</button>`}<button class="btn primary" onclick="saveTopServed()">儲存</button></div><div class="hint">再點一次座位圖上的同一組座位，可取消查看回到主畫面。</div>`;}
 function toggleDessertServedTop(orderId,dessertId,checked){topDessertServedDraft[dessertId]=checked;renderOrderPreview();}
 function dessertDetailTop(o){let rows=[];desserts.forEach(d=>{let q=o.desserts?.[d.id]||0;if(q>0){let served=(topDessertServedDraft[d.id]!==undefined)?!!topDessertServedDraft[d.id]:!!(o.dessertServed?.[d.id]);let checked=served?'checked':'';let done=served?'done':'';let txt=served?'已送':'未送';rows.push(`<label class="drinkLine dessertServeRow"><span>${d.name} × ${q}</span><span class="topServeCtl"><input type="checkbox" ${checked} onchange="toggleDessertServedTop('${o.id}','${d.id}',this.checked)"> <span class="serveText ${done}">${txt}</span></span></label>`)}});return rows.length?rows.join(''):'無'}
 function toggleServedTop(orderId,seat,checked){topServedDraft[seat]=checked;renderOrderPreview();}
@@ -1767,6 +2081,20 @@ function queueBatchHint(it,items){
  }
  return '';
 }
+
+function queueEditToTopDetail(ev,id,focusSeat=null){
+  if(ev){
+    try{ev.preventDefault();}catch(e){}
+    try{ev.stopPropagation();}catch(e){}
+    try{ev.stopImmediatePropagation();}catch(e){}
+  }
+  let o=state.orders.find(x=>x.id===id);
+  if(!o)return false;
+  let seat=focusSeat || (o.seats&&o.seats[0]) || '';
+  jumpToOrderEditorInstant();
+  showOrder(id,seat);
+  return false;
+}
 function renderDrinkQueue(){
  let box=$('drinkQueueCards');if(!box)return;
  let items=[];
@@ -1799,10 +2127,10 @@ function renderDrinkQueue(){
      let sugar=pd.sugar?`｜${pd.sugar}`:'';
      let ice=pd.ice?`｜${pd.ice}`:'';
      let single=pd.single?'｜單點':'';
-     return `<div class="queueCard queueSide ${cls}"><div class="queueInfo"><div class="big">${idx+1}. <span class="queueSeatLead">${it.seat}</span> 的飲料｜${d.name}${d.temp}${sugar}${ice}${single}</div><div class="queuePriorityHint">${drinkPriorityLabel(pd)}</div>${queueBatchHint(it,items)}<div class="metaLine">同桌：${o.seats.join('、')}｜${o.name?o.name+'｜':''}${right}</div><div class="row" style="margin-top:8px"><button class="btn primary" onclick="markDrinkServed('${o.id}','${it.seat}')">已送達</button><button class="btn" onclick="showOrder('${o.id}','${it.seat}')">查看/修改</button></div></div><div class="queueMapSide">${renderMiniTableThumb(it.seat,(o.seats||[]).filter(s=>seatGroupKey(s)===seatGroupKey(it.seat)))}</div></div>`
+     return `<div class="queueCard queueSide ${cls}"><div class="queueInfo"><div class="big">${idx+1}. <span class="queueSeatLead">${it.seat}</span> 的飲料｜${d.name}${d.temp}${sugar}${ice}${single}</div><div class="queuePriorityHint">${drinkPriorityLabel(pd)}</div>${queueBatchHint(it,items)}<div class="metaLine">同桌：${o.seats.join('、')}｜${o.name?o.name+'｜':''}${right}</div><div class="row" style="margin-top:8px"><button class="btn primary" onclick="markDrinkServed('${o.id}','${it.seat}')">已送達</button><button type="button" class="btn" onclick="return queueEditToTopDetail(event,'${o.id}','${it.seat}')">查看/修改</button></div></div><div class="queueMapSide">${renderMiniTableThumb(it.seat,(o.seats||[]).filter(s=>seatGroupKey(s)===seatGroupKey(it.seat)))}</div></div>`
    }else{
      let d=it.dessert;
-     return `<div class="queueCard queueSide ${cls}"><div class="queueInfo"><div class="big">${idx+1}. <span class="queueSeatLead">${(o.seats||[''])[0]}</span> 這桌甜點｜${d.name} × ${it.qty}</div><div class="metaLine">同桌：${o.seats.join('、')}｜${o.name?o.name+'｜':''}${right}</div><div class="row" style="margin-top:8px"><button class="btn primary" onclick="markDessertServed('${o.id}','${d.id}')">已送達</button><button class="btn" onclick="showOrder('${o.id}','${(o.seats||[''])[0]}')">查看/修改</button></div></div><div class="queueMapSide">${renderMiniTableThumb((o.seats||[''])[0],(o.seats||[]).filter(s=>seatGroupKey(s)===seatGroupKey((o.seats||[''])[0])))}</div></div>`
+     return `<div class="queueCard queueSide ${cls}"><div class="queueInfo"><div class="big">${idx+1}. <span class="queueSeatLead">${(o.seats||[''])[0]}</span> 這桌甜點｜${d.name} × ${it.qty}</div><div class="metaLine">同桌：${o.seats.join('、')}｜${o.name?o.name+'｜':''}${right}</div><div class="row" style="margin-top:8px"><button class="btn primary" onclick="markDessertServed('${o.id}','${d.id}')">已送達</button><button type="button" class="btn" onclick="return queueEditToTopDetail(event,'${o.id}','${(o.seats||[''])[0]}')">查看/修改</button></div></div><div class="queueMapSide">${renderMiniTableThumb((o.seats||[''])[0],(o.seats||[]).filter(s=>seatGroupKey(s)===seatGroupKey((o.seats||[''])[0])))}</div></div>`
    }
  }).join('');
 }
@@ -1834,8 +2162,8 @@ function renderCards(){
             <div class="meta">甜點：${dessertSummary(o)}</div>
             <div class="row" style="margin-top:8px" onclick="event.stopPropagation()">
               ${o.status==='reserved'?`<button class="btn primary" onclick="startReserved('${o.id}')">到店／開始計時</button>`:''}
-              <button class="btn brown" onclick="checkout('${o.id}')">結帳清桌</button>
-              <button class="btn" onclick="showOrder('${o.id}','${firstSeat}')">編輯/修改</button>
+              <button class="btn brown" onclick="checkout('${o.id}')">送POS／結帳清桌</button>
+              <button class="btn" onclick="return editOrderFromButton(event,'${o.id}','${firstSeat}')">編輯/修改</button>
               <button class="btn danger" onclick="deleteOrder('${o.id}')">刪除</button>
             </div>
           </div>
