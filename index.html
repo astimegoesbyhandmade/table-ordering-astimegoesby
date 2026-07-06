@@ -1220,6 +1220,41 @@ body.queueOnlyMode #drinkQueueCards .queueCard.queueSide{
   justify-content:flex-end;
 }
 
+
+/* phone map bigger + centered */
+@media(max-width:580px){
+  .mapWrap{
+    padding:4px!important;
+    overflow:visible!important;
+    justify-content:flex-start!important;
+  }
+  .map{
+    margin:0!important;
+    transform-origin:top left!important;
+  }
+  .areaText{
+    font-size:18px!important;
+    letter-spacing:2px!important;
+    line-height:1.45!important;
+  }
+  .tableRound,.tableRect{
+    border-width:5px!important;
+  }
+  .cab{
+    border-width:3px!important;
+  }
+  .seat{
+    width:46px!important;
+    height:46px!important;
+    font-size:12px!important;
+    border-width:4px!important;
+  }
+  .seat.small{
+    width:42px!important;
+    height:42px!important;
+  }
+}
+
 </style>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -2396,17 +2431,22 @@ function fitSeatMap(){
   let vw=Math.max(320, window.innerWidth || document.documentElement.clientWidth || 360);
   let isPhone=vw<=580;
   let isTablet=vw<=980;
-  let pad=isPhone?18:24;
+  let pad=isPhone?10:24;
   let availW=isPhone
-    ? Math.max(280, Math.min(vw-24, wrap.clientWidth-pad))
+    ? Math.max(300, Math.min(vw-10, wrap.clientWidth-pad))
     : Math.max(320, wrap.clientWidth-pad);
   let scale=availW/baseW;
+
   if(isPhone){
-    scale=Math.max(.42, Math.min(.56, scale));
+    // 手機版：比上一版放大，並把圖往左修正置中
+    // 主要座位內容約落在 x=15~724；用較大縮放後，以 translateX 補回置中。
+    scale=Math.max(.52, Math.min(.60, scale + .08));
+    let visualW=724*scale;
+    let shift=Math.min(34, Math.max(14, (visualW-availW)/2 + 18));
     map.style.setProperty('--mapScale', scale);
     map.style.transformOrigin='top left';
-    map.style.transform=`translateX(0) scale(${scale})`;
-    wrap.style.height=Math.round(baseH*scale + 18)+'px';
+    map.style.transform=`translateX(${-shift}px) scale(${scale})`;
+    wrap.style.height=Math.round(baseH*scale + 14)+'px';
     wrap.style.overflow='visible';
     return;
   }else if(isTablet){
