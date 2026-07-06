@@ -457,12 +457,8 @@ header{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.94);backdro
   }
 }
 
-/* phone full map */
-
-@media(max-width:580px){
-  .app{padding:8px}
-  .mapWrap{padding:8px!important;overflow:visible!important}
-  .map{transform:translateX(-16px) scale(var(--mapScale,1))!important;transform-origin:top left!important}
+.mapWrap{padding:8px!important;overflow:visible!important}
+  .map{transform:translateX(-4px) scale(var(--mapScale,1))!important;transform-origin:top left!important}
   .seat{width:46px!important;height:46px!important;font-size:13px!important}
 }
 
@@ -1166,46 +1162,6 @@ body.queueOnlyMode #drinkQueueCards .queueCard.queueSide{
 }
 
 
-/* mobile full seat map fit: prevent right side clipping */
-@media(max-width:580px){
-  .app{
-    padding:6px!important;
-    overflow-x:hidden!important;
-  }
-  .panel .body{
-    padding:8px!important;
-  }
-  .mapWrap{
-    width:100%!important;
-    max-width:100vw!important;
-    padding:6px!important;
-    overflow:visible!important;
-    justify-content:flex-start!important;
-    align-items:flex-start!important;
-    box-sizing:border-box!important;
-  }
-  .map{
-    margin:0!important;
-    transform:translateX(-10px) scale(var(--mapScale,1))!important;
-    transform-origin:top left!important;
-  }
-  .seat{
-    width:44px!important;
-    height:44px!important;
-    font-size:12px!important;
-    border-width:4px!important;
-  }
-  .seat.small{
-    width:40px!important;
-    height:40px!important;
-  }
-  .seat .mini{
-    font-size:10px!important;
-    bottom:-17px!important;
-  }
-}
-
-
 .editMergedCard{margin:0 0 14px;padding:18px 18px;border:1px solid #ffd2e4;border-radius:20px;background:#fff8fc;}
 .editMergedTop{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px;}
 .editMergedTitle{font-size:18px;font-weight:1000;color:#2f2732;}
@@ -1218,49 +1174,6 @@ body.queueOnlyMode #drinkQueueCards .queueCard.queueSide{
 .editMergedCard .editMergedActions{
   margin-top:10px;
   justify-content:flex-end;
-}
-
-
-/* phone map bigger + centered */
-@media(max-width:580px){
-  .mapWrap{
-    padding:4px!important;
-    overflow:visible!important;
-    justify-content:flex-start!important;
-  }
-  .map{
-    margin:0!important;
-    transform-origin:top left!important;
-  }
-  .areaText{
-    font-size:18px!important;
-    letter-spacing:2px!important;
-    line-height:1.45!important;
-  }
-  .tableRound,.tableRect{
-    border-width:5px!important;
-  }
-  .cab{
-    border-width:3px!important;
-  }
-  .seat{
-    width:46px!important;
-    height:46px!important;
-    font-size:12px!important;
-    border-width:4px!important;
-  }
-  .seat.small{
-    width:42px!important;
-    height:42px!important;
-  }
-}
-
-
-/* phone map more left */
-@media(max-width:580px){
-  .mapWrap{
-    overflow:visible!important;
-  }
 }
 
 
@@ -1309,35 +1222,74 @@ body.queueOnlyMode #drinkQueueCards .queueCard.queueSide{
 }
 
 
-.seat[data-seat="C4"]{left:476px!important;}
-  .seat[data-seat="C1"]{left:621px!important;}
-  .seat[data-seat="C3"]{left:476px!important;}
-  .seat[data-seat="C2"]{left:621px!important;}
-}
 
-
-
-
-
-/* phone map: enlarge, move left, hide 攝影棚, align camping with F4, move 發發 left */
+/* FINAL phone seat map: full width, no clipping */
 @media(max-width:580px){
-  #photoAreaText{display:none!important;}
-  #photoDivider{left:36px!important;height:390px!important;}
+  .app{
+    padding:6px!important;
+    overflow-x:hidden!important;
+  }
+  .panel .body{
+    padding:6px!important;
+  }
+  .mapWrap{
+    width:100%!important;
+    max-width:100vw!important;
+    padding:4px!important;
+    overflow:hidden!important;
+    justify-content:flex-start!important;
+    align-items:flex-start!important;
+    box-sizing:border-box!important;
+  }
+  .map{
+    margin:0!important;
+    transform-origin:top left!important;
+  }
 
-  /* 整體文字與線條微調 */
-  .areaText{font-size:16px!important;letter-spacing:1px!important;}
+  /* 手機版刪掉攝影棚 */
+  #photoAreaText,
+  #photoDivider{
+    display:none!important;
+  }
 
-  /* 露營桌往左，中心更接近 F4 */
-  #campTable{left:472px!important;}
-  .seat[data-seat="C4"]{left:412px!important;}
-  .seat[data-seat="C1"]{left:557px!important;}
-  .seat[data-seat="C3"]{left:412px!important;}
-  .seat[data-seat="C2"]{left:557px!important;}
+  /* 發發靠左很多 */
+  #fafaTable{left:515px!important;}
+  .seat[data-seat="E1"]{left:450px!important;}
+  .seat[data-seat="E2"]{left:450px!important;}
 
-  /* 發發整組明顯往左 */
-  #fafaTable{left:500px!important;}
-  .seat[data-seat="E1"]{left:435px!important;}
-  .seat[data-seat="E2"]{left:435px!important;}
+  /* 露營靠左，跟 F4 區更對齊 */
+  #campTable{left:480px!important;}
+  .seat[data-seat="C4"]{left:420px!important;}
+  .seat[data-seat="C1"]{left:565px!important;}
+  .seat[data-seat="C3"]{left:420px!important;}
+  .seat[data-seat="C2"]{left:565px!important;}
+
+  .areaText{
+    font-size:16px!important;
+    letter-spacing:1px!important;
+    line-height:1.35!important;
+  }
+  .seat{
+    width:42px!important;
+    height:42px!important;
+    font-size:11px!important;
+    border-width:4px!important;
+  }
+  .seat.small{
+    width:38px!important;
+    height:38px!important;
+  }
+  .seat .mini{
+    font-size:9px!important;
+    bottom:-16px!important;
+    padding:1px 4px!important;
+  }
+  .tableRound,.tableRect{
+    border-width:5px!important;
+  }
+  .cab{
+    border-width:3px!important;
+  }
 }
 
 </style>
@@ -2546,42 +2498,61 @@ function renderCards(){
 function toggleEditSections(){let hide=isViewOnly();let ids=['pkgGrid','peopleDrinks','dessertGrid','totalMoney','calcHint'];ids.forEach(id=>{let el=$(id);if(el)el.classList.toggle('viewOnlyHide',hide);});document.querySelectorAll('.label').forEach(l=>{let t=l.innerText.trim();if(['套餐','座位飲料','甜點區'].includes(t))l.classList.toggle('viewOnlyHide',hide);});let total=document.querySelector('.total');if(total)total.classList.toggle('viewOnlyHide',hide);let typeRow=$('typeWalk')?.parentElement;if(typeRow)typeRow.classList.toggle('viewOnlyHide',hide);let nameRow=$('custName')?.closest('.grid2');if(nameRow)nameRow.classList.toggle('viewOnlyHide',hide);let drinkHint=$('peopleDrinks')?.previousElementSibling;if(drinkHint&&drinkHint.classList.contains('hint'))drinkHint.classList.toggle('viewOnlyHide',hide);}
 
 function fitSeatMap(){
-  let wrap=document.querySelector('.mapWrap'), map=$('map');
+  const wrap=document.querySelector('.mapWrap');
+  const map=$('map');
   if(!wrap||!map)return;
-  let baseW=760, baseH=1165;
-  let vw=Math.max(320, window.innerWidth || document.documentElement.clientWidth || 360);
-  let isPhone=vw<=580;
-  let isTablet=vw<=980;
-  let pad=isPhone?10:24;
-  let availW=isPhone
-    ? Math.max(300, Math.min(vw-10, wrap.clientWidth-pad))
-    : Math.max(320, wrap.clientWidth-pad);
-  let scale=availW/baseW;
+
+  const baseW=760, baseH=1165;
+  const vw=Math.max(320, window.innerWidth || document.documentElement.clientWidth || 360);
+  const isPhone=vw<=580;
+  const isTablet=vw<=980;
 
   if(isPhone){
-    // 手機版：比上一版放大，並把圖往左修正置中
-    // 主要座位內容約落在 x=15~724；用較大縮放後，以 translateX 補回置中。
-    scale=Math.max(.58, Math.min(.68, scale + .12));
-    let visualW=690*scale;
-    // 手機版再放大一點並整體往左移
-    let shift=Math.min(118, Math.max(74, (visualW-availW)/2 + 78));
+    // 手機版重點：完整看到整張寬度，不再切到右邊
+    const wrapStyle=getComputedStyle(wrap);
+    const padLeft=parseFloat(wrapStyle.paddingLeft)||0;
+    const padRight=parseFloat(wrapStyle.paddingRight)||0;
+    const availW=Math.max(280, wrap.clientWidth-padLeft-padRight);
+
+    // 隱藏攝影棚後，主要內容安全範圍約 92 ~ 640
+    const contentLeft=92;
+    const contentRight=640;
+    const contentW=contentRight-contentLeft;
+
+    let scale=availW/contentW;
+    // 以完整顯示為優先，保留一點放大感
+    scale=Math.max(.50, Math.min(.61, scale));
+
+    const visualW=contentW*scale;
+    const x=((availW-visualW)/2) - (contentLeft*scale);
+
     map.style.setProperty('--mapScale', scale);
     map.style.transformOrigin='top left';
-    map.style.transform=`translateX(${-shift}px) scale(${scale})`;
-    wrap.style.height=Math.round(baseH*scale + 14)+'px';
-    wrap.style.overflow='visible';
+    map.style.setProperty('transform', `translateX(${x}px) scale(${scale})`, 'important');
+    wrap.style.height=Math.round(baseH*scale + 12)+'px';
+    wrap.style.overflow='hidden';
     return;
-  }else if(isTablet){
+  }
+
+  let pad=isTablet?18:24;
+  let availW=Math.max(320, wrap.clientWidth-pad);
+  let scale=availW/baseW;
+
+  if(isTablet){
     scale=Math.max(.62, Math.min(.86, scale));
   }else{
     scale=Math.max(.72, Math.min(1.08, scale));
   }
+
   map.style.setProperty('--mapScale', scale);
-  map.style.transform='';
-  wrap.style.height = Math.round(baseH*scale + (isPhone?18:24)) + 'px';
+  map.style.transformOrigin='top center';
+  map.style.setProperty('transform', `scale(${scale})`, 'important');
+  wrap.style.height=Math.round(baseH*scale + 24)+'px';
+  wrap.style.overflow='hidden';
 }
 window.addEventListener('resize', fitSeatMap);
 window.addEventListener('orientationchange',()=>setTimeout(fitSeatMap,250));
+window.addEventListener('load',()=>setTimeout(fitSeatMap,80));
 
 function todayKeyLocal(){
   const d=new Date();
