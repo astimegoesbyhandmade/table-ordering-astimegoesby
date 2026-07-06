@@ -1794,7 +1794,8 @@ function renderPeopleDrinks(){ensurePeople();$('peopleDrinks').classList.toggle(
    let c=calcTotal();
    html+=`<div class="editMergedCard"><div class="editMergedLine"><b>${seatsTxt}｜總額 $${c.total}</b></div><div class="editMergedLine">${pkgTxt}</div><div class="editMergedLine">飲料：${drinkTxt}</div><div class="editMergedLine">甜點：${dessertTxt}</div><div class="editMergedActions"><button class="btn primary" onclick="saveOrderEdit()">儲存</button></div></div>`;
  }else{
-   html=currentOrderSummaryHTML();
+   // 下方座位飲料區不再重複顯示「目前開單」摘要，保留上方那一張即可
+   html='';
  }
  let quick=selected.filter(seat=>personDrinks[seat]?.drink);
  if(quick.length){
