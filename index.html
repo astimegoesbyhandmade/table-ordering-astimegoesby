@@ -1165,6 +1165,61 @@ body.queueOnlyMode #drinkQueueCards .queueCard.queueSide{
   color:#a37654;
 }
 
+
+/* mobile full seat map fit: prevent right side clipping */
+@media(max-width:580px){
+  .app{
+    padding:6px!important;
+    overflow-x:hidden!important;
+  }
+  .panel .body{
+    padding:8px!important;
+  }
+  .mapWrap{
+    width:100%!important;
+    max-width:100vw!important;
+    padding:6px!important;
+    overflow:visible!important;
+    justify-content:flex-start!important;
+    align-items:flex-start!important;
+    box-sizing:border-box!important;
+  }
+  .map{
+    margin:0!important;
+    transform:translateX(0) scale(var(--mapScale,1))!important;
+    transform-origin:top left!important;
+  }
+  .seat{
+    width:44px!important;
+    height:44px!important;
+    font-size:12px!important;
+    border-width:4px!important;
+  }
+  .seat.small{
+    width:40px!important;
+    height:40px!important;
+  }
+  .seat .mini{
+    font-size:10px!important;
+    bottom:-17px!important;
+  }
+}
+
+
+.editMergedCard{margin:0 0 14px;padding:18px 18px;border:1px solid #ffd2e4;border-radius:20px;background:#fff8fc;}
+.editMergedTop{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px;}
+.editMergedTitle{font-size:18px;font-weight:1000;color:#2f2732;}
+.editMergedCount{font-size:18px;font-weight:1000;color:#2f2732;}
+.editMergedLine{font-size:14px;font-weight:800;color:#8b7c8a;line-height:1.7;}
+.editMergedActions{margin-top:12px;display:flex;justify-content:flex-end;}
+
+
+/* compact edit summary */
+.editMergedCard .editMergedActions{
+  margin-top:10px;
+  justify-content:flex-end;
+}
+
 </style>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -1633,8 +1688,42 @@ function currentOrderSummaryHTML(){
   let pkgTxt=packageCount()?`套餐：${packageLabel()}｜${selectedTime()}分｜含飲料 ${includedDrinkCount()} 杯`:'套餐：未選套餐｜可直接點飲料';
   return `<div class="currentOrderSummary"><div class="title">目前開單</div><div class="main">${seatsTxt}</div><div class="sub">${pkgTxt}</div></div>`;
 }
+
+function editDrinkSummaryForSelected(){
+  let lines=[];
+  (selected||[]).forEach(s=>{
+    let pd=personDrinks?.[s];
+    if(pd&&pd.drink){
+      let parts=[`${s}: ${pd.drink.name}${pd.drink.temp}${pd.single?'（單點）':''}`];
+      if(pd.sugar)parts.push(pd.sugar);
+      if(pd.ice)parts.push(pd.ice);
+      if(pd.served)parts.push('已送');
+      else parts.push('未送');
+      lines.push(parts.join(' '));
+    }
+  });
+  return lines.length?lines.join('｜'):'未選';
+}
+function editDessertSummaryForSelected(){
+  let rows=[];
+  desserts.forEach(d=>{
+    let q=Number(dessertQty?.[d.id]||0);
+    if(q>0)rows.push(`${d.name}×${q}`);
+  });
+  return rows.length?rows.join('｜'):'無';
+}
 function renderPeopleDrinks(){ensurePeople();$('peopleDrinks').classList.toggle('editingBox',!!editingOrderId); if(!selected.length&&!editingOrderId){$('peopleDrinks').innerHTML='';return} if(!selected.length){$('peopleDrinks').innerHTML='';return}
- let html=currentOrderSummaryHTML();
+ let html='';
+ if(editingOrderId){
+   let seatsTxt=`座位：${selected.join('、')}｜${selected.length}人`;
+   let pkgTxt=packageCount()?`套餐：${packageLabel()}`:'套餐：未選套餐';
+   let drinkTxt=editDrinkSummaryForSelected();
+   let dessertTxt=editDessertSummaryForSelected();
+   let c=calcTotal();
+   html+=`<div class="editMergedCard"><div class="editMergedLine"><b>${seatsTxt}｜總額 $${c.total}</b></div><div class="editMergedLine">${pkgTxt}</div><div class="editMergedLine">飲料：${drinkTxt}</div><div class="editMergedLine">甜點：${dessertTxt}</div><div class="editMergedActions"><button class="btn primary" onclick="saveOrderEdit()">儲存</button></div></div>`;
+ }else{
+   html=currentOrderSummaryHTML();
+ }
  let quick=selected.filter(seat=>personDrinks[seat]?.drink);
  if(quick.length){
    html+=`<div class="label">送餐勾選</div><div class="servedQuick">`;
@@ -1691,6 +1780,41 @@ function plainDessertSummaryForSelected(){
 function renderInstantOrderDetail(){
   let box=$('instantOrderDetail');
   if(!box)return;
+  // 編輯模式：不顯示正在修改區塊
+  if(editingOrderId){box.classList.add('hidden');box.innerHTML='';return;}
+  if(viewOrderId && !editingOrderId && !selected.length){
+    box.classList.add('hidden');
+    box.innerHTML='';
+    return;
+  }
+
+  if(!selected.length && !editingOrderId && viewOrderId){
+    let o=state.orders.find(x=>x.id===viewOrderId);
+    if(o){
+      let paid=Number(o.paidAmount||0)||0;
+      let due=dueAmount(o.total,paid);
+      let seatsText=(o.seats&&o.seats.length)?o.seats.join('、'):'未選座位';
+      let people=o.seats?.length||0;
+      let pkgText=o.pkg?.fullName||o.pkg?.name||'未選套餐';
+      let drinkText=o.seats.map(s=>{
+        let pd=o.drinks?.[s];
+        if(!pd||!pd.drink)return `${s}: 未選飲料`;
+        let parts=[`${s}: ${pd.drink.name}${pd.drink.temp}${pd.single?'（單點）':''}`];
+        if(pd.sugar)parts.push(pd.sugar);
+        if(pd.ice)parts.push(pd.ice);
+        return parts.join(' ');
+      }).join('｜')||'未選';
+      let dessertText=dessertSummary(o);
+      box.classList.remove('hidden');
+      box.innerHTML=`<div class="detailTop"><span>目前訂單｜${seatsText}</span><span>${people}人</span></div>
+        <div class="detailLine">${o.type==='reservation'?'預約':'現場'}｜套餐：${pkgText}｜${o.duration||selectedTime()}分鐘</div>
+        <div class="detailLine">飲料：${drinkText}</div>
+        <div class="detailLine">甜點：${dessertText}</div>
+        <div class="moneyLine">${o.type==='reservation'?'現場應收':'總額'} $${o.type==='reservation'?due:o.total}</div>`;
+      return;
+    }
+  }
+
   if(!selected.length && !editingOrderId){
     box.classList.add('hidden');
     box.innerHTML='';
@@ -1715,7 +1839,7 @@ function renderTotal(){
   let c=calcTotal();
   if($('totalMoney'))$('totalMoney').innerText=c.paid>0?`應收 $${c.due}`:'$'+c.total;
   if($('calcHint'))$('calcHint').innerText=(orderType==='walkin')?`現場：套餐$${c.base}＋飲料/甜點$${c.drinkTotal+c.des}`:`預約：飲料/甜點$${c.drinkTotal+c.des}`;
-  if($('saveEditBtn'))$('saveEditBtn').classList.toggle('hidden',!editingOrderId);
+  if($('saveEditBtn'))$('saveEditBtn').classList.add('hidden');
   if($('sendBtn'))$('sendBtn').classList.toggle('hidden',!!editingOrderId);
   renderInstantOrderDetail();
 }
@@ -2009,7 +2133,9 @@ function orderTimeStatus(o){
 }
 function orderTimeRange(o){let start='';let end='';if(o.type==='reservation'&&o.resvTime){start=o.resvTime}else if(o.startAt){start=fmtTime(o.startAt)};if(o.endAt){end=fmtTime(o.endAt)};return (start&&end)?`${start}–${end}`:(start||end||'')}
 function orderDrinkDetail(o){let lines=o.seats.map(s=>{let pd=o.drinks?.[s];if(!pd||!pd.drink)return '';let parts=[`${s}: ${pd.drink.name}${pd.drink.temp}${pd.single?'（單點）':''}`];if(pd.sugar)parts.push(pd.sugar);if(pd.ice)parts.push(pd.ice);let check=pd.served?'<span class="checkOk" title="已送達"></span>':'';return `<span class="drinkLine">${parts.join(' ')} ${check}</span>`}).filter(Boolean);return lines.length?lines.join(''):'未選';}
-function renderOrderPreview(){let box=$('orderPreview');if(!box)return;if(!viewOrderId){box.classList.add('hidden');box.innerHTML='';return}let o=state.orders.find(x=>x.id===viewOrderId);if(!o){viewOrderId=null;box.classList.add('hidden');box.innerHTML='';return}let time=orderTimeRange(o)||'未設定';let editing=editingOrderId===o.id;box.classList.remove('hidden');box.innerHTML=`<div class="previewTop"><div class="title">${editing?'正在編輯':'正在查看'}：${o.seats.join('、')}</div><button class="btn brown" onclick="checkout('${o.id}')">送POS／結帳清桌</button></div><div class="line">${o.type==='reservation'?'預約':'現場'}｜${o.pkg.fullName||o.pkg.name}｜${paymentSummary(o)}</div><div class="line">時段：${time}｜${orderTimeStatus(o)}</div><div class="line">飲料：</div><div class="line">${orderDrinkDetailTop(o)}</div><div class="line">甜點：</div><div class="line">${dessertDetailTop(o)}</div><div class="row" style="margin-top:10px;gap:10px">${editing?'<span class="hint">下方「座位飲料」已展開，可修改飲料與其他細項。</span>':`<button class="btn brown" onclick="return editOrderFromButton(event,'${o.id}','${o.seats[0]||''}')">編輯飲料/修改</button>`}<button class="btn primary" onclick="saveTopServed()">儲存</button></div><div class="hint">再點一次座位圖上的同一組座位，可取消查看回到主畫面。</div>`;}
+function renderOrderPreview(){let box=$('orderPreview');if(!box)return;if(!viewOrderId){box.classList.add('hidden');box.innerHTML='';return}let o=state.orders.find(x=>x.id===viewOrderId);if(!o){viewOrderId=null;box.classList.add('hidden');box.innerHTML='';return}let time=orderTimeRange(o)||'未設定';let editing=editingOrderId===o.id;
+  // 編輯模式：不顯示正在編輯區塊，直接露出下方修改區
+  if(editing){box.classList.add('hidden');box.innerHTML='';return;}box.classList.remove('hidden');box.innerHTML=`<div class="previewTop"><div class="title">${editing?'正在編輯':'正在查看'}：${o.seats.join('、')}</div><button class="btn brown" onclick="checkout('${o.id}')">送POS／結帳清桌</button></div><div class="line">${o.type==='reservation'?'預約':'現場'}｜${o.pkg.fullName||o.pkg.name}｜${paymentSummary(o)}</div><div class="line">時段：${time}｜${orderTimeStatus(o)}</div><div class="line">飲料：</div><div class="line">${orderDrinkDetailTop(o)}</div><div class="line">甜點：</div><div class="line">${dessertDetailTop(o)}</div><div class="row" style="margin-top:10px;gap:10px">${editing?'<span class="hint">下方「座位飲料」已展開，可修改飲料與其他細項。</span>':`<button class="btn brown" onclick="return editOrderFromButton(event,'${o.id}','${o.seats[0]||''}')">編輯飲料/修改</button>`}<button class="btn primary" onclick="saveTopServed()">儲存</button></div><div class="hint">再點一次座位圖上的同一組座位，可取消查看回到主畫面。</div>`;}
 function toggleDessertServedTop(orderId,dessertId,checked){topDessertServedDraft[dessertId]=checked;renderOrderPreview();}
 function dessertDetailTop(o){let rows=[];desserts.forEach(d=>{let q=o.desserts?.[d.id]||0;if(q>0){let served=(topDessertServedDraft[d.id]!==undefined)?!!topDessertServedDraft[d.id]:!!(o.dessertServed?.[d.id]);let checked=served?'checked':'';let done=served?'done':'';let txt=served?'已送':'未送';rows.push(`<label class="drinkLine dessertServeRow"><span>${d.name} × ${q}</span><span class="topServeCtl"><input type="checkbox" ${checked} onchange="toggleDessertServedTop('${o.id}','${d.id}',this.checked)"> <span class="serveText ${done}">${txt}</span></span></label>`)}});return rows.length?rows.join(''):'無'}
 function toggleServedTop(orderId,seat,checked){topServedDraft[seat]=checked;renderOrderPreview();}
@@ -2267,22 +2393,33 @@ function fitSeatMap(){
   let wrap=document.querySelector('.mapWrap'), map=$('map');
   if(!wrap||!map)return;
   let baseW=760, baseH=1165;
-  let isPhone=window.innerWidth<=580;
-  let isTablet=window.innerWidth<=980;
+  let vw=Math.max(320, window.innerWidth || document.documentElement.clientWidth || 360);
+  let isPhone=vw<=580;
+  let isTablet=vw<=980;
   let pad=isPhone?18:24;
-  let availW=Math.max(280,wrap.clientWidth-pad);
+  let availW=isPhone
+    ? Math.max(280, Math.min(vw-24, wrap.clientWidth-pad))
+    : Math.max(320, wrap.clientWidth-pad);
   let scale=availW/baseW;
   if(isPhone){
-    scale=Math.max(.50, Math.min(.62, scale));
+    scale=Math.max(.42, Math.min(.56, scale));
+    map.style.setProperty('--mapScale', scale);
+    map.style.transformOrigin='top left';
+    map.style.transform=`translateX(0) scale(${scale})`;
+    wrap.style.height=Math.round(baseH*scale + 18)+'px';
+    wrap.style.overflow='visible';
+    return;
   }else if(isTablet){
     scale=Math.max(.62, Math.min(.86, scale));
   }else{
     scale=Math.max(.72, Math.min(1.08, scale));
   }
   map.style.setProperty('--mapScale', scale);
+  map.style.transform='';
   wrap.style.height = Math.round(baseH*scale + (isPhone?18:24)) + 'px';
 }
 window.addEventListener('resize', fitSeatMap);
+window.addEventListener('orientationchange',()=>setTimeout(fitSeatMap,250));
 
 function todayKeyLocal(){
   const d=new Date();
