@@ -462,7 +462,7 @@ header{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.94);backdro
 @media(max-width:580px){
   .app{padding:8px}
   .mapWrap{padding:8px!important;overflow:visible!important}
-  .map{transform:translateX(-4px) scale(var(--mapScale,1))!important;transform-origin:top left!important}
+  .map{transform:translateX(-16px) scale(var(--mapScale,1))!important;transform-origin:top left!important}
   .seat{width:46px!important;height:46px!important;font-size:13px!important}
 }
 
@@ -1186,7 +1186,7 @@ body.queueOnlyMode #drinkQueueCards .queueCard.queueSide{
   }
   .map{
     margin:0!important;
-    transform:translateX(0) scale(var(--mapScale,1))!important;
+    transform:translateX(-10px) scale(var(--mapScale,1))!important;
     transform-origin:top left!important;
   }
   .seat{
@@ -1309,13 +1309,35 @@ body.queueOnlyMode #drinkQueueCards .queueCard.queueSide{
 }
 
 
-/* move camping table cluster left on phone */
-@media(max-width:580px){
-  #campTable{left:536px!important;}
-  .seat[data-seat="C4"]{left:476px!important;}
+.seat[data-seat="C4"]{left:476px!important;}
   .seat[data-seat="C1"]{left:621px!important;}
   .seat[data-seat="C3"]{left:476px!important;}
   .seat[data-seat="C2"]{left:621px!important;}
+}
+
+
+
+
+
+/* phone map: enlarge, move left, hide 攝影棚, align camping with F4, move 發發 left */
+@media(max-width:580px){
+  #photoAreaText{display:none!important;}
+  #photoDivider{left:36px!important;height:390px!important;}
+
+  /* 整體文字與線條微調 */
+  .areaText{font-size:16px!important;letter-spacing:1px!important;}
+
+  /* 露營桌往左，中心更接近 F4 */
+  #campTable{left:472px!important;}
+  .seat[data-seat="C4"]{left:412px!important;}
+  .seat[data-seat="C1"]{left:557px!important;}
+  .seat[data-seat="C3"]{left:412px!important;}
+  .seat[data-seat="C2"]{left:557px!important;}
+
+  /* 發發整組明顯往左 */
+  #fafaTable{left:500px!important;}
+  .seat[data-seat="E1"]{left:435px!important;}
+  .seat[data-seat="E2"]{left:435px!important;}
 }
 
 </style>
@@ -1326,10 +1348,10 @@ body.queueOnlyMode #drinkQueueCards .queueCard.queueSide{
 <header><div><h1>🪑 時光造所｜座位控台</h1><div class="sub">連點座位 → 選套餐 → 點座位名字選飲料 → 送單開始計時</div></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end"><div class="pill" id="syncStatus">本機資料</div><div class="pill" id="clock">--:--</div></div></header>
 <div class="app">
 <section class="panel"><h2>座位圖</h2><div class="body"><div class="legend"><span class="tag"><i class="dot empty"></i>空位</span><span class="tag"><i class="dot sel"></i>已選</span><span class="tag"><i class="dot resv"></i>預約</span><span class="tag"><i class="dot busy"></i>使用中</span><span class="tag"><i class="dot soon"></i>剩15分</span><span class="tag"><i class="dot late"></i>超時</span><span class="tag"><i class="dot food"></i>餐飲未送</span></div><div class="mapWrap"><div class="map" id="map">
-<div class="areaText" style="left:15px;top:150px">攝<br>影<br>棚</div><div class="divider v" style="left:82px;top:80px;height:380px"></div>
+<div class="areaText" id="photoAreaText" style="left:15px;top:150px">攝<br>影<br>棚</div><div class="divider v" id="photoDivider" style="left:82px;top:80px;height:380px"></div>
 <div class="tableRound" style="left:255px;top:20px;width:118px;height:118px">三朵花</div>
 <div class="seat" data-seat="F1" style="left:190px;top:45px">F1</div><div class="seat" data-seat="F2" style="left:385px;top:45px">F2</div><div class="seat" data-seat="F3" style="left:285px;top:145px">F3</div>
-<div class="tableRect" style="left:650px;top:20px;width:74px;height:155px;writing-mode:vertical-rl">發發</div><div class="seat" data-seat="E1" style="left:585px;top:45px">E1</div><div class="seat" data-seat="E2" style="left:585px;top:125px">E2</div>
+<div class="tableRect" id="fafaTable" style="left:650px;top:20px;width:74px;height:155px;writing-mode:vertical-rl">發發</div><div class="seat" data-seat="E1" style="left:585px;top:45px">E1</div><div class="seat" data-seat="E2" style="left:585px;top:125px">E2</div>
 <div class="tableRound" style="left:145px;top:305px;width:118px;height:118px">五月花</div><div class="seat" data-seat="G1" style="left:180px;top:240px">G1</div><div class="seat" data-seat="G5" style="left:105px;top:340px">G5</div><div class="seat" data-seat="G2" style="left:265px;top:280px">G2</div><div class="seat" data-seat="G4" style="left:180px;top:430px">G4</div><div class="seat" data-seat="G3" style="left:270px;top:405px">G3</div>
 <div class="tableRound" style="left:455px;top:235px;width:118px;height:118px">F4</div><div class="seat" data-seat="D4" style="left:400px;top:220px">D4</div><div class="seat" data-seat="D1" style="left:585px;top:220px">D1</div><div class="seat" data-seat="D3" style="left:400px;top:335px">D3</div><div class="seat" data-seat="D2" style="left:585px;top:335px">D2</div>
 <div class="tableRect" id="campTable" style="left:560px;top:420px;width:80px;height:150px;writing-mode:vertical-rl">露營</div><div class="seat" data-seat="C4" style="left:500px;top:455px">C4</div><div class="seat" data-seat="C1" style="left:645px;top:455px">C1</div><div class="seat" data-seat="C3" style="left:500px;top:535px">C3</div><div class="seat" data-seat="C2" style="left:645px;top:535px">C2</div>
@@ -2539,10 +2561,10 @@ function fitSeatMap(){
   if(isPhone){
     // 手機版：比上一版放大，並把圖往左修正置中
     // 主要座位內容約落在 x=15~724；用較大縮放後，以 translateX 補回置中。
-    scale=Math.max(.52, Math.min(.60, scale + .08));
-    let visualW=724*scale;
-    // 手機版再往左移，讓右側座位完整露出
-    let shift=Math.min(72, Math.max(44, (visualW-availW)/2 + 44));
+    scale=Math.max(.58, Math.min(.68, scale + .12));
+    let visualW=690*scale;
+    // 手機版再放大一點並整體往左移
+    let shift=Math.min(118, Math.max(74, (visualW-availW)/2 + 78));
     map.style.setProperty('--mapScale', scale);
     map.style.transformOrigin='top left';
     map.style.transform=`translateX(${-shift}px) scale(${scale})`;
