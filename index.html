@@ -950,6 +950,91 @@ header{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.94);backdro
   }
 }
 
+
+/* active/reservation: fit cards to content, show more orders in same frame */
+#activeCards{
+  overflow-y:auto!important;
+  max-height:620px!important;
+  min-height:0!important;
+  padding-right:6px!important;
+}
+#activeCards .orderCard{
+  min-height:0!important;
+  height:auto!important;
+  padding:18px 20px 16px!important;
+  margin-bottom:10px!important;
+}
+#activeCards .orderCard .top{
+  margin-bottom:8px!important;
+}
+#activeCards .orderCard .meta{
+  line-height:1.42!important;
+  margin-top:3px!important;
+}
+#activeCards .orderCard .row{
+  margin-top:12px!important;
+}
+
+
+/* full production queue window */
+body.queueOnlyMode{
+  background:#fffafb!important;
+}
+body.queueOnlyMode header{
+  display:none!important;
+}
+body.queueOnlyMode .app{
+  display:block!important;
+  padding:14px!important;
+  max-width:none!important;
+}
+body.queueOnlyMode .app > section:not(.queuePanel){
+  display:none!important;
+}
+body.queueOnlyMode .queuePanel{
+  display:block!important;
+  width:100%!important;
+  min-height:calc(100vh - 28px)!important;
+  margin:0!important;
+}
+body.queueOnlyMode .queuePanel h2{
+  font-size:30px!important;
+  padding:18px 22px!important;
+}
+body.queueOnlyMode .queuePanel .body{
+  padding:18px!important;
+}
+body.queueOnlyMode .queuePanel .body > .row:first-child{
+  display:none!important;
+}
+body.queueOnlyMode #drinkQueueCards{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:14px!important;
+  max-height:none!important;
+  overflow:visible!important;
+}
+body.queueOnlyMode #drinkQueueCards .queueCard{
+  background:#fff!important;
+}
+body.queueOnlyMode #drinkQueueCards .queueCard.queueSide{
+  grid-template-columns:minmax(0,1fr) 260px!important;
+}
+@media(max-width:760px){
+  body.queueOnlyMode .app{padding:8px!important}
+  body.queueOnlyMode .queuePanel h2{font-size:24px!important;padding:14px 16px!important}
+  body.queueOnlyMode .queuePanel .body{padding:12px!important}
+  body.queueOnlyMode #drinkQueueCards .queueCard.queueSide{
+    grid-template-columns:1fr!important;
+  }
+  body.queueOnlyMode #drinkQueueCards .queueMapSide{
+    border-left:0!important;
+    border-top:1px dashed var(--line)!important;
+    padding-left:0!important;
+    padding-top:10px!important;
+  }
+}
+
 </style>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -1002,7 +1087,7 @@ header{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.94);backdro
 </div></section>
 
 </div></div>
-<section class="panel queuePanel"><h2>製作順序</h2><div class="body"><div class="cards" id="drinkQueueCards"></div></div></section>
+<section class="panel queuePanel"><h2>製作順序</h2><div class="body"><div class="row" style="margin:0 0 10px"><button class="btn primary" onclick="openFullQueueWindow()">查看完整順序</button><span class="hint">另開只顯示製作順序的視窗</span></div><div class="cards" id="drinkQueueCards"></div></div></section>
 <section class="panel"><h2>進行中 / 預約</h2><div class="body"><div class="cards" id="activeCards"></div></div></section>
 <section class="panel"><h2>今日紀錄</h2><div class="body"><div class="row"><button class="btn" onclick="exportCSV()">匯出 CSV</button><button class="btn primary" onclick="openTodayDetailModal()">詳細資料</button><button class="btn" onclick="openHistoryModal()">歷史紀錄</button></div><div class="cards" id="historyCards"></div></div></section><div id="historyModal" class="modal hidden"><div class="modalBox"><div class="modalHead"><div class="modalTitle">歷史紀錄</div><button class="btn" onclick="closeHistoryModal()">關閉</button></div><div id="historyAllCards" class="cards"></div></div></div><div id="todayDetailModal" class="modal hidden"><div class="modalBox"><div class="modalHead"><div class="modalTitle">今日詳細資料</div><button class="btn" onclick="closeTodayDetailModal()">關閉</button></div><div id="todayDetailBox" class="cards"></div></div></div>
 </div>
@@ -1173,6 +1258,7 @@ function startAppNow(){
     setSyncStatus('Firebase啟動失敗，使用本機資料');
     try{renderAllSafe();}catch(err){}
   }
+  try{applyFullQueueMode();}catch(e){}
   try{tick();}catch(e){}
 }
 function initFirebaseSync(){
@@ -1736,7 +1822,23 @@ function closePendingModal(){
 }
 function togglePendingPanel(){openPendingModal();}
 
-function renderAll(){refreshPendingTimeOptions();autoRequestReservationNotify();checkOpeningReservationReminder();fitSeatMap();renderPackages();renderPeopleDrinks();renderDesserts();renderMap();renderCards();renderReservationPlanner();renderTotal();renderOrderPreview();renderDrinkQueue();toggleEditSections();renderTodayReservationReminder();}
+
+function openFullQueueWindow(){
+  let u=new URL(window.location.href);
+  u.searchParams.set('queueOnly','1');
+  let w=window.open(u.toString(),'fullQueueWindow');
+  if(!w)alert('瀏覽器阻擋了新視窗，請允許彈出視窗。');
+}
+function applyFullQueueMode(){
+  let isQueueOnly=new URLSearchParams(location.search).get('queueOnly')==='1';
+  if(!isQueueOnly)return;
+  document.body.classList.add('queueOnlyMode');
+  document.title='製作順序｜時光造所';
+  let h=document.querySelector('.queuePanel h2');
+  if(h)h.textContent='製作順序';
+  renderDrinkQueue();
+}
+function renderAll(){refreshPendingTimeOptions();autoRequestReservationNotify();checkOpeningReservationReminder();fitSeatMap();renderPackages();renderPeopleDrinks();renderDesserts();renderMap();renderCards();renderReservationPlanner();renderTotal();renderOrderPreview();renderDrinkQueue();toggleEditSections();renderTodayReservationReminder();applyFullQueueMode();}
 function tick(){$('clock').innerText=nowStr();checkOpeningReservationReminder();renderMap();renderCards();renderReservationPlanner();renderDrinkQueue();renderTodayReservationReminder();}setInterval(tick,30000);setInterval(()=>{$('clock').innerText=nowStr()},1000);
 function exportCSV(){let rows=[['姓名','類型','座位','套餐','金額','預約時間','開始','結束','飲料','甜點']];[...state.history,...state.orders].forEach(o=>rows.push([o.name||'',o.type==='reservation'?'預約':'現場',o.seats.join(' '),(o.pkg.fullName||o.pkg.name),o.total,o.resvTime||'',o.startAt?new Date(o.startAt).toLocaleString('zh-TW'):'',o.endAt?new Date(o.endAt).toLocaleString('zh-TW'):'',o.seats.map(s=>{let pd=o.drinks?.[s];return pd&&pd.drink?`${s}:${pd.drink.name}${pd.drink.temp}/${pd.sugar||''}/${pd.ice||''}/${pd.served?'已送':'未送'}`:''}).join(' | '),dessertSummary(o)]));let csv=rows.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(',')).join('\n');let blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='時光造所座位紀錄.csv';a.click();}
 
