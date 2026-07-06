@@ -1255,6 +1255,45 @@ body.queueOnlyMode #drinkQueueCards .queueCard.queueSide{
   }
 }
 
+
+/* phone map more left */
+@media(max-width:580px){
+  .mapWrap{
+    overflow:visible!important;
+  }
+}
+
+
+/* active card top-right delete X */
+.orderCard{
+  position:relative;
+}
+.activeDeleteX{
+  position:absolute;
+  top:14px;
+  right:14px;
+  width:38px;
+  height:38px;
+  border-radius:999px;
+  border:1px solid #ffb8c0;
+  background:#fff4f5;
+  color:#111;
+  font-size:26px;
+  font-weight:1000;
+  line-height:1;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:5;
+}
+.activeDeleteX:hover{
+  background:#ffe7ea;
+}
+#activeCards .orderCard .top{
+  padding-right:46px;
+}
+
 </style>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -2061,7 +2100,7 @@ function checkout(id){
       if(confirm('POS 匯入失敗，仍要清桌嗎？'))finishCheckoutClearSeat(id);
     });
 }
-function deleteOrder(id){if(!confirm('取消這筆預約/開單？'))return;state.orders=state.orders.filter(x=>x.id!==id);if(editingOrderId===id){selected=[];activeDrinkSeat=null;personDrinks={};dessertQty={cheese:0,basque:0};editingOrderId=null;$('custName').value='';$('resvTime').value='';}save();renderAll();}function saveOrderEdit(){if(!editingOrderId){alert('目前沒有正在修改的座位');return}let o=state.orders.find(x=>x.id===editingOrderId);if(!o){editingOrderId=null;renderAll();return}o.name=$('custName').value.trim();o.type=orderType;o.pkg=packageSnapshot();o.drinks=JSON.parse(JSON.stringify(personDrinks));o.desserts=JSON.parse(JSON.stringify(dessertQty));if(!o.dessertServed)o.dessertServed={};Object.keys(o.desserts||{}).forEach(k=>{if((o.desserts[k]||0)<=0)delete o.dessertServed[k]});let c=calcTotal();o.total=c.total;o.paidAmount=c.paid;o.dueAmount=c.due;o.resvTime=$('resvTime').value||'';save();selected=[];activeDrinkSeat=null;personDrinks={};dessertQty={cheese:0,basque:0};editingOrderId=null;topServedDraft={};pkgQty={B:1};$('custName').value='';$('resvTime').value='';renderAll();}
+function deleteOrder(id){if(!confirm('確定要刪除這筆訂單嗎？'))return;state.orders=state.orders.filter(x=>x.id!==id);if(editingOrderId===id){selected=[];activeDrinkSeat=null;personDrinks={};dessertQty={cheese:0,basque:0};editingOrderId=null;$('custName').value='';$('resvTime').value='';}save();renderAll();}function saveOrderEdit(){if(!editingOrderId){alert('目前沒有正在修改的座位');return}let o=state.orders.find(x=>x.id===editingOrderId);if(!o){editingOrderId=null;renderAll();return}o.name=$('custName').value.trim();o.type=orderType;o.pkg=packageSnapshot();o.drinks=JSON.parse(JSON.stringify(personDrinks));o.desserts=JSON.parse(JSON.stringify(dessertQty));if(!o.dessertServed)o.dessertServed={};Object.keys(o.desserts||{}).forEach(k=>{if((o.desserts[k]||0)<=0)delete o.dessertServed[k]});let c=calcTotal();o.total=c.total;o.paidAmount=c.paid;o.dueAmount=c.due;o.resvTime=$('resvTime').value||'';save();selected=[];activeDrinkSeat=null;personDrinks={};dessertQty={cheese:0,basque:0};editingOrderId=null;topServedDraft={};pkgQty={B:1};$('custName').value='';$('resvTime').value='';renderAll();}
 
 function hasUnservedDessert(o){
   if(!o||!o.desserts)return false;
@@ -2400,6 +2439,7 @@ function renderCards(){
       let opened=viewOrderId===o.id?' opened':'';
       let thumb=firstSeat?renderMiniTableThumb(firstSeat,o.seats||[]):'';
       html+=`<div class="orderCard${opened}" onclick="viewOrderId==='${o.id}'?clearSelection():(viewOrderId='${o.id}',editingOrderId=null,selected=[],activeDrinkSeat=null,personDrinks={},dessertQty={cheese:0,basque:0},pkgQty={},renderAll())">
+        <button class="activeDeleteX" title="刪除" onclick="event.stopPropagation();deleteOrder('${o.id}')">×</button>
         <div class="activeCardGrid">
           <div class="activeCardInfo">
             <div class="top"><span>${o.name?o.name+'｜':''}${o.seats.join('、')}</span><span>${right}</span></div>
@@ -2411,7 +2451,6 @@ function renderCards(){
               ${o.status==='reserved'?`<button class="btn primary" onclick="startReserved('${o.id}')">到店／開始計時</button>`:''}
               <button class="btn brown" onclick="checkout('${o.id}')">送POS／結帳清桌</button>
               <button class="btn" onclick="return editOrderFromButton(event,'${o.id}','${firstSeat}')">編輯/修改</button>
-              <button class="btn danger" onclick="deleteOrder('${o.id}')">刪除</button>
             </div>
           </div>
           <div class="activeSeatThumbSide">${thumb}</div>
@@ -2442,7 +2481,8 @@ function fitSeatMap(){
     // 主要座位內容約落在 x=15~724；用較大縮放後，以 translateX 補回置中。
     scale=Math.max(.52, Math.min(.60, scale + .08));
     let visualW=724*scale;
-    let shift=Math.min(34, Math.max(14, (visualW-availW)/2 + 18));
+    // 手機版再往左移，讓右側座位完整露出
+    let shift=Math.min(72, Math.max(44, (visualW-availW)/2 + 44));
     map.style.setProperty('--mapScale', scale);
     map.style.transformOrigin='top left';
     map.style.transform=`translateX(${-shift}px) scale(${scale})`;
