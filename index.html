@@ -1184,8 +1184,10 @@ function save(){
   normalizeState(state);
   const json=JSON.stringify(state);
   localStorage.setItem(LOCAL_KEY,json);
+  broadcastLocalState(json);
   if(firebaseSyncReady && liveRef && !applyingRemote && json!==lastSavedJson){
     lastSavedJson=json;
+    // 背景同步，不阻塞畫面
     liveRef.set({
       ...state,
       updatedAt: new Date().toISOString(),
@@ -1210,8 +1212,75 @@ function setSyncStatus(msg){
   if(el) el.textContent=msg;
 }
 
+let seatSystemChannel=null;
+function broadcastLocalState(json){
+  try{
+    let payload={type:'seatStateUpdate',source:getDeviceId(),json,at:Date.now()};
+    if(seatSystemChannel)seatSystemChannel.postMessage(payload);
+    localStorage.setItem(LOCAL_KEY+'_ping',JSON.stringify(payload));
+  }catch(e){}
+}
+function applyStateJsonFromOtherWindow(json){
+  if(!json)return;
+  try{
+    let remote=JSON.parse(json);
+    applyRemoteState(remote);
+    setSyncStatus(firebaseSyncReady?'已同步 Firebase':'已同步本機視窗');
+  }catch(e){
+    console.warn('跨視窗同步失敗',e);
+  }
+}
+function initCrossWindowSync(){
+  try{
+    if('BroadcastChannel' in window){
+      seatSystemChannel=new BroadcastChannel('seatSystemLiveChannel');
+      seatSystemChannel.onmessage=e=>{
+        let msg=e.data||{};
+        if(msg.type==='seatStateUpdate'&&msg.source!==getDeviceId()){
+          applyStateJsonFromOtherWindow(msg.json);
+        }
+      };
+    }
+  }catch(e){}
+  window.addEventListener('storage',e=>{
+    if(e.key===LOCAL_KEY && e.newValue){
+      applyStateJsonFromOtherWindow(e.newValue);
+    }
+    if(e.key===LOCAL_KEY+'_ping' && e.newValue){
+      try{
+        let msg=JSON.parse(e.newValue);
+        if(msg.type==='seatStateUpdate'&&msg.source!==getDeviceId()){
+          applyStateJsonFromOtherWindow(msg.json);
+        }
+      }catch(err){}
+    }
+  });
+}
+function renderAllPanelsNow(){
+  try{renderAllSafe();}catch(e){
+    try{renderAll();}catch(err){}
+  }
+}
+
 function renderAllSafe(){
   try{ renderAll(); }catch(e){ console.warn('renderAll失敗，稍後重試', e); }
+}
+
+function renderQueueFast(){
+  try{ renderDrinkQueue(); }catch(e){}
+  try{ renderCards(); }catch(e){}
+  try{ renderMap(); }catch(e){}
+  try{ renderOrderPreview(); }catch(e){}
+}
+function renderIncomingStateFast(){
+  // 廚房完整順序頁只重畫製作順序；外場頁只重畫必要卡片，避免每次同步都整站重排
+  if(document.body.classList.contains('queueOnlyMode')){
+    try{renderDrinkQueue();}catch(e){}
+  }else{
+    renderQueueFast();
+    try{renderTodayReservationReminder();}catch(e){}
+    try{renderReservationPlanner();}catch(e){}
+  }
 }
 function bootRenderSchedule(){
   // 開頁先用本機快取畫一次，再連續補畫，避免 Firebase 還沒回來時畫面空白
@@ -1231,11 +1300,15 @@ function applyRemoteState(remote){
     pendingReservations:coerceArray(remote.pendingReservations),
     reservationNotifyLog:remote.reservationNotifyLog||{}
   });
+  const json=JSON.stringify(next);
+  if(json===JSON.stringify(state)){
+    lastSavedJson=json;
+    return true;
+  }
   state=next;
-  const json=JSON.stringify(state);
   lastSavedJson=json;
   localStorage.setItem(LOCAL_KEY,json);
-  renderAllSafe();
+  renderIncomingStateFast();
   return true;
 }
 
@@ -1251,6 +1324,7 @@ function startAppNow(){
   }catch(e){
     try{renderAllSafe();}catch(err){console.warn('初始畫面渲染失敗',err);}
   }
+  try{initCrossWindowSync();}catch(e){}
   try{
     initFirebaseSync();
   }catch(e){
@@ -1669,8 +1743,8 @@ function renderDrinkQueue(){
    }
  }).join('');
 }
-function markDrinkServed(orderId,seat){let o=state.orders.find(x=>x.id===orderId);if(!o||!o.drinks||!o.drinks[seat])return;o.drinks[seat].served=true;save();loadTopServedDraft(o);renderMap();renderCards();renderOrderPreview();renderDrinkQueue();}
-function markDessertServed(orderId,dessertId){let o=state.orders.find(x=>x.id===orderId);if(!o)return;if(!o.dessertServed)o.dessertServed={};o.dessertServed[dessertId]=true;save();loadTopServedDraft(o);renderMap();renderCards();renderOrderPreview();renderDrinkQueue();}
+function markDrinkServed(orderId,seat){let o=state.orders.find(x=>x.id===orderId);if(!o||!o.drinks||!o.drinks[seat])return;o.drinks[seat].served=true;loadTopServedDraft(o);renderQueueFast();save();}
+function markDessertServed(orderId,dessertId){let o=state.orders.find(x=>x.id===orderId);if(!o)return;if(!o.dessertServed)o.dessertServed={};o.dessertServed[dessertId]=true;loadTopServedDraft(o);renderQueueFast();save();}
 function renderCards(){let html='';state.orders.slice().sort((a,b)=>(a.status==='reserved'?0:1)-(b.status==='reserved'?0:1)||new Date(a.createdAt)-new Date(b.createdAt)).forEach(o=>{let right=''; if(o.status==='active'&&o.endAt){let m=Math.ceil((new Date(o.endAt)-new Date())/60000);right=m<0?`<span class="warn">已開桌 ${orderElapsedMinutes(o)} 分｜超時 ${Math.abs(m)} 分</span>`:`已開桌 ${orderElapsedMinutes(o)} 分｜剩 ${m} 分`;} else if(o.status==='reserved'){right='預約'}
  let timeRange=orderTimeRange(o);let firstSeat=o.seats&&o.seats.length?o.seats[0]:'';let opened=viewOrderId===o.id?' opened':'';
  html+=`<div class="orderCard${opened}" onclick="viewOrderId==='${o.id}'?clearSelection():(viewOrderId='${o.id}',editingOrderId=null,selected=[],activeDrinkSeat=null,personDrinks={},dessertQty={cheese:0,basque:0},pkgQty={},renderAll())"><div class="top"><span>${o.name?o.name+'｜':''}${o.seats.join('、')}</span><span>${right}</span></div><div class="meta">${o.type==='reservation'?'預約':'現場'}｜${o.pkg.fullName||o.pkg.name}｜${o.pkg.time}分鐘｜${paymentSummary(o)}</div><div class="meta"><span class="timeRange">時段：${timeRange||'未設定'}｜${orderTimeStatus(o)}</span></div><div class="meta">飲料：${orderDrinkDetail(o)}</div><div class="meta">甜點：${dessertSummary(o)}</div><div class="row" style="margin-top:8px" onclick="event.stopPropagation()">${o.status==='reserved'?`<button class="btn primary" onclick="startReserved('${o.id}')">到店／開始計時</button>`:''}<button class="btn brown" onclick="checkout('${o.id}')">結帳清桌</button><button class="btn" onclick="showOrder('${o.id}','${firstSeat}')">編輯/修改</button><button class="btn danger" onclick="deleteOrder('${o.id}')">刪除</button></div></div>`});$('activeCards').innerHTML=html||'<div class="hint">目前沒有進行中座位。</div>';
