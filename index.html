@@ -1294,6 +1294,30 @@ body.queueOnlyMode #drinkQueueCards .queueCard.queueSide{
   padding-right:46px;
 }
 
+
+/* queue same drink hot/ice suggestion */
+.queueTogetherHint{
+  margin:6px 0 0;
+  padding:7px 10px;
+  border-radius:12px;
+  background:#fff5d6;
+  border:1px solid #ffe08a;
+  color:#7a5200;
+  font-size:13px;
+  font-weight:900;
+  line-height:1.45;
+}
+
+
+/* move camping table cluster left on phone */
+@media(max-width:580px){
+  #campTable{left:536px!important;}
+  .seat[data-seat="C4"]{left:476px!important;}
+  .seat[data-seat="C1"]{left:621px!important;}
+  .seat[data-seat="C3"]{left:476px!important;}
+  .seat[data-seat="C2"]{left:621px!important;}
+}
+
 </style>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -1308,7 +1332,7 @@ body.queueOnlyMode #drinkQueueCards .queueCard.queueSide{
 <div class="tableRect" style="left:650px;top:20px;width:74px;height:155px;writing-mode:vertical-rl">發發</div><div class="seat" data-seat="E1" style="left:585px;top:45px">E1</div><div class="seat" data-seat="E2" style="left:585px;top:125px">E2</div>
 <div class="tableRound" style="left:145px;top:305px;width:118px;height:118px">五月花</div><div class="seat" data-seat="G1" style="left:180px;top:240px">G1</div><div class="seat" data-seat="G5" style="left:105px;top:340px">G5</div><div class="seat" data-seat="G2" style="left:265px;top:280px">G2</div><div class="seat" data-seat="G4" style="left:180px;top:430px">G4</div><div class="seat" data-seat="G3" style="left:270px;top:405px">G3</div>
 <div class="tableRound" style="left:455px;top:235px;width:118px;height:118px">F4</div><div class="seat" data-seat="D4" style="left:400px;top:220px">D4</div><div class="seat" data-seat="D1" style="left:585px;top:220px">D1</div><div class="seat" data-seat="D3" style="left:400px;top:335px">D3</div><div class="seat" data-seat="D2" style="left:585px;top:335px">D2</div>
-<div class="tableRect" style="left:560px;top:420px;width:80px;height:150px;writing-mode:vertical-rl">露營</div><div class="seat" data-seat="C4" style="left:500px;top:455px">C4</div><div class="seat" data-seat="C1" style="left:645px;top:455px">C1</div><div class="seat" data-seat="C3" style="left:500px;top:535px">C3</div><div class="seat" data-seat="C2" style="left:645px;top:535px">C2</div>
+<div class="tableRect" id="campTable" style="left:560px;top:420px;width:80px;height:150px;writing-mode:vertical-rl">露營</div><div class="seat" data-seat="C4" style="left:500px;top:455px">C4</div><div class="seat" data-seat="C1" style="left:645px;top:455px">C1</div><div class="seat" data-seat="C3" style="left:500px;top:535px">C3</div><div class="seat" data-seat="C2" style="left:645px;top:535px">C2</div>
 <div class="divider" style="left:145px;top:620px;width:535px"></div>
 <div class="cab" style="left:145px;top:635px;width:54px;height:72px">櫃4</div><div class="cab" style="left:145px;top:707px;width:54px;height:72px">櫃5</div><div class="cab" style="left:145px;top:779px;width:54px;height:72px">櫃6</div>
 <div class="cab" style="left:455px;top:640px;width:70px;height:45px">櫃3</div><div class="cab" style="left:525px;top:640px;width:70px;height:45px">櫃2</div><div class="cab" style="left:595px;top:640px;width:70px;height:45px">櫃1</div>
@@ -2368,6 +2392,40 @@ function queueBatchHint(it,items){
  return '';
 }
 
+function drinkBaseBatchKey(pd){
+  let d=pd?.drink;if(!d)return '';
+  return String(d.name||'').trim();
+}
+function drinkTempBatchKey(pd){
+  let d=pd?.drink;if(!d)return '';
+  return String(d.temp||'').trim();
+}
+function queueHotIceTogetherHint(it,items){
+  if(it.kind!=='drink')return '';
+  let base=drinkBaseBatchKey(it.pd);
+  if(!base)return '';
+  let fiveMin=5*60*1000;
+  let same=items.filter(x=>
+    x.kind==='drink' &&
+    drinkBaseBatchKey(x.pd)===base &&
+    Math.abs(x.time-it.time)<=fiveMin
+  );
+  let orderIds=[...new Set(same.map(x=>x.order?.id).filter(Boolean))];
+  if(orderIds.length<2)return '';
+  let temps=[...new Set(same.map(x=>drinkTempBatchKey(x.pd)).filter(Boolean))];
+  let hasIce=temps.some(t=>t.includes('冰'));
+  let hasHot=temps.some(t=>t.includes('熱'));
+  if(!(hasIce&&hasHot))return '';
+  same.sort((a,b)=>{
+    let ai=drinkTempBatchKey(a.pd).includes('冰')?0:1;
+    let bi=drinkTempBatchKey(b.pd).includes('冰')?0:1;
+    return ai-bi || a.time-b.time || seats.indexOf(a.seat||'')-seats.indexOf(b.seat||'');
+  });
+  let iceSeats=same.filter(x=>drinkTempBatchKey(x.pd).includes('冰')).map(x=>x.seat).join('、');
+  let hotSeats=same.filter(x=>drinkTempBatchKey(x.pd).includes('熱')).map(x=>x.seat).join('、');
+  return `<div class="queueTogetherHint">5分鐘內建議同做：「${base}」${iceSeats?`冰：${iceSeats}`:''}${iceSeats&&hotSeats?'｜':''}${hotSeats?`熱：${hotSeats}`:''}</div>`;
+}
+
 function queueEditToTopDetail(ev,id,focusSeat=null){
   if(ev){
     try{ev.preventDefault();}catch(e){}
@@ -2413,7 +2471,7 @@ function renderDrinkQueue(){
      let sugar=pd.sugar?`｜${pd.sugar}`:'';
      let ice=pd.ice?`｜${pd.ice}`:'';
      let single=pd.single?'｜單點':'';
-     return `<div class="queueCard queueSide ${cls}"><div class="queueInfo"><div class="big">${idx+1}. <span class="queueSeatLead">${it.seat}</span> 的飲料｜${d.name}${d.temp}${sugar}${ice}${single}</div><div class="queuePriorityHint">${drinkPriorityLabel(pd)}</div>${queueBatchHint(it,items)}<div class="metaLine">同桌：${o.seats.join('、')}｜${o.name?o.name+'｜':''}${right}</div><div class="row" style="margin-top:8px"><button class="btn primary" onclick="markDrinkServed('${o.id}','${it.seat}')">已送達</button><button type="button" class="btn" onclick="return queueEditToTopDetail(event,'${o.id}','${it.seat}')">查看/修改</button></div></div><div class="queueMapSide">${renderMiniTableThumb(it.seat,(o.seats||[]).filter(s=>seatGroupKey(s)===seatGroupKey(it.seat)))}</div></div>`
+     return `<div class="queueCard queueSide ${cls}"><div class="queueInfo"><div class="big">${idx+1}. <span class="queueSeatLead">${it.seat}</span> 的飲料｜${d.name}${d.temp}${sugar}${ice}${single}</div><div class="queuePriorityHint">${drinkPriorityLabel(pd)}</div>${queueHotIceTogetherHint(it,items)}<div class="metaLine">同桌：${o.seats.join('、')}｜${o.name?o.name+'｜':''}${right}</div><div class="row" style="margin-top:8px"><button class="btn primary" onclick="markDrinkServed('${o.id}','${it.seat}')">已送達</button><button type="button" class="btn" onclick="return queueEditToTopDetail(event,'${o.id}','${it.seat}')">查看/修改</button></div></div><div class="queueMapSide">${renderMiniTableThumb(it.seat,(o.seats||[]).filter(s=>seatGroupKey(s)===seatGroupKey(it.seat)))}</div></div>`
    }else{
      let d=it.dessert;
      return `<div class="queueCard queueSide ${cls}"><div class="queueInfo"><div class="big">${idx+1}. <span class="queueSeatLead">${(o.seats||[''])[0]}</span> 這桌甜點｜${d.name} × ${it.qty}</div><div class="metaLine">同桌：${o.seats.join('、')}｜${o.name?o.name+'｜':''}${right}</div><div class="row" style="margin-top:8px"><button class="btn primary" onclick="markDessertServed('${o.id}','${d.id}')">已送達</button><button type="button" class="btn" onclick="return queueEditToTopDetail(event,'${o.id}','${(o.seats||[''])[0]}')">查看/修改</button></div></div><div class="queueMapSide">${renderMiniTableThumb((o.seats||[''])[0],(o.seats||[]).filter(s=>seatGroupKey(s)===seatGroupKey((o.seats||[''])[0])))}</div></div>`
