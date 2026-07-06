@@ -457,7 +457,11 @@ header{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.94);backdro
   }
 }
 
-.mapWrap{padding:8px!important;overflow:visible!important}
+/* phone full map */
+
+@media(max-width:580px){
+  .app{padding:8px}
+  .mapWrap{padding:8px!important;overflow:visible!important}
   .map{transform:translateX(-4px) scale(var(--mapScale,1))!important;transform-origin:top left!important}
   .seat{width:46px!important;height:46px!important;font-size:13px!important}
 }
@@ -1162,6 +1166,46 @@ body.queueOnlyMode #drinkQueueCards .queueCard.queueSide{
 }
 
 
+/* mobile full seat map fit: prevent right side clipping */
+@media(max-width:580px){
+  .app{
+    padding:6px!important;
+    overflow-x:hidden!important;
+  }
+  .panel .body{
+    padding:8px!important;
+  }
+  .mapWrap{
+    width:100%!important;
+    max-width:100vw!important;
+    padding:6px!important;
+    overflow:visible!important;
+    justify-content:flex-start!important;
+    align-items:flex-start!important;
+    box-sizing:border-box!important;
+  }
+  .map{
+    margin:0!important;
+    transform:translateX(0) scale(var(--mapScale,1))!important;
+    transform-origin:top left!important;
+  }
+  .seat{
+    width:44px!important;
+    height:44px!important;
+    font-size:12px!important;
+    border-width:4px!important;
+  }
+  .seat.small{
+    width:40px!important;
+    height:40px!important;
+  }
+  .seat .mini{
+    font-size:10px!important;
+    bottom:-17px!important;
+  }
+}
+
+
 .editMergedCard{margin:0 0 14px;padding:18px 18px;border:1px solid #ffd2e4;border-radius:20px;background:#fff8fc;}
 .editMergedTop{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px;}
 .editMergedTitle{font-size:18px;font-weight:1000;color:#2f2732;}
@@ -1176,122 +1220,6 @@ body.queueOnlyMode #drinkQueueCards .queueCard.queueSide{
   justify-content:flex-end;
 }
 
-
-/* active card top-right delete X */
-.orderCard{
-  position:relative;
-}
-.activeDeleteX{
-  position:absolute;
-  top:14px;
-  right:14px;
-  width:38px;
-  height:38px;
-  border-radius:999px;
-  border:1px solid #ffb8c0;
-  background:#fff4f5;
-  color:#111;
-  font-size:26px;
-  font-weight:1000;
-  line-height:1;
-  cursor:pointer;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:5;
-}
-.activeDeleteX:hover{
-  background:#ffe7ea;
-}
-#activeCards .orderCard .top{
-  padding-right:46px;
-}
-
-
-/* queue same drink hot/ice suggestion */
-.queueTogetherHint{
-  margin:6px 0 0;
-  padding:7px 10px;
-  border-radius:12px;
-  background:#fff5d6;
-  border:1px solid #ffe08a;
-  color:#7a5200;
-  font-size:13px;
-  font-weight:900;
-  line-height:1.45;
-}
-
-
-
-/* FINAL phone seat map: full width, no clipping */
-@media(max-width:580px){
-  .app{
-    padding:6px!important;
-    overflow-x:hidden!important;
-  }
-  .panel .body{
-    padding:6px!important;
-  }
-  .mapWrap{
-    width:100%!important;
-    max-width:100vw!important;
-    padding:4px!important;
-    overflow:hidden!important;
-    justify-content:flex-start!important;
-    align-items:flex-start!important;
-    box-sizing:border-box!important;
-  }
-  .map{
-    margin:0!important;
-    transform-origin:top left!important;
-  }
-
-  /* 手機版刪掉攝影棚 */
-  #photoAreaText,
-  #photoDivider{
-    display:none!important;
-  }
-
-  /* 發發靠左很多 */
-  #fafaTable{left:515px!important;}
-  .seat[data-seat="E1"]{left:450px!important;}
-  .seat[data-seat="E2"]{left:450px!important;}
-
-  /* 露營靠左，跟 F4 區更對齊 */
-  #campTable{left:480px!important;}
-  .seat[data-seat="C4"]{left:420px!important;}
-  .seat[data-seat="C1"]{left:565px!important;}
-  .seat[data-seat="C3"]{left:420px!important;}
-  .seat[data-seat="C2"]{left:565px!important;}
-
-  .areaText{
-    font-size:16px!important;
-    letter-spacing:1px!important;
-    line-height:1.35!important;
-  }
-  .seat{
-    width:42px!important;
-    height:42px!important;
-    font-size:11px!important;
-    border-width:4px!important;
-  }
-  .seat.small{
-    width:38px!important;
-    height:38px!important;
-  }
-  .seat .mini{
-    font-size:9px!important;
-    bottom:-16px!important;
-    padding:1px 4px!important;
-  }
-  .tableRound,.tableRect{
-    border-width:5px!important;
-  }
-  .cab{
-    border-width:3px!important;
-  }
-}
-
 </style>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -1300,13 +1228,13 @@ body.queueOnlyMode #drinkQueueCards .queueCard.queueSide{
 <header><div><h1>🪑 時光造所｜座位控台</h1><div class="sub">連點座位 → 選套餐 → 點座位名字選飲料 → 送單開始計時</div></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end"><div class="pill" id="syncStatus">本機資料</div><div class="pill" id="clock">--:--</div></div></header>
 <div class="app">
 <section class="panel"><h2>座位圖</h2><div class="body"><div class="legend"><span class="tag"><i class="dot empty"></i>空位</span><span class="tag"><i class="dot sel"></i>已選</span><span class="tag"><i class="dot resv"></i>預約</span><span class="tag"><i class="dot busy"></i>使用中</span><span class="tag"><i class="dot soon"></i>剩15分</span><span class="tag"><i class="dot late"></i>超時</span><span class="tag"><i class="dot food"></i>餐飲未送</span></div><div class="mapWrap"><div class="map" id="map">
-<div class="areaText" id="photoAreaText" style="left:15px;top:150px">攝<br>影<br>棚</div><div class="divider v" id="photoDivider" style="left:82px;top:80px;height:380px"></div>
+<div class="areaText" style="left:15px;top:150px">攝<br>影<br>棚</div><div class="divider v" style="left:82px;top:80px;height:380px"></div>
 <div class="tableRound" style="left:255px;top:20px;width:118px;height:118px">三朵花</div>
 <div class="seat" data-seat="F1" style="left:190px;top:45px">F1</div><div class="seat" data-seat="F2" style="left:385px;top:45px">F2</div><div class="seat" data-seat="F3" style="left:285px;top:145px">F3</div>
-<div class="tableRect" id="fafaTable" style="left:650px;top:20px;width:74px;height:155px;writing-mode:vertical-rl">發發</div><div class="seat" data-seat="E1" style="left:585px;top:45px">E1</div><div class="seat" data-seat="E2" style="left:585px;top:125px">E2</div>
+<div class="tableRect" style="left:650px;top:20px;width:74px;height:155px;writing-mode:vertical-rl">發發</div><div class="seat" data-seat="E1" style="left:585px;top:45px">E1</div><div class="seat" data-seat="E2" style="left:585px;top:125px">E2</div>
 <div class="tableRound" style="left:145px;top:305px;width:118px;height:118px">五月花</div><div class="seat" data-seat="G1" style="left:180px;top:240px">G1</div><div class="seat" data-seat="G5" style="left:105px;top:340px">G5</div><div class="seat" data-seat="G2" style="left:265px;top:280px">G2</div><div class="seat" data-seat="G4" style="left:180px;top:430px">G4</div><div class="seat" data-seat="G3" style="left:270px;top:405px">G3</div>
 <div class="tableRound" style="left:455px;top:235px;width:118px;height:118px">F4</div><div class="seat" data-seat="D4" style="left:400px;top:220px">D4</div><div class="seat" data-seat="D1" style="left:585px;top:220px">D1</div><div class="seat" data-seat="D3" style="left:400px;top:335px">D3</div><div class="seat" data-seat="D2" style="left:585px;top:335px">D2</div>
-<div class="tableRect" id="campTable" style="left:560px;top:420px;width:80px;height:150px;writing-mode:vertical-rl">露營</div><div class="seat" data-seat="C4" style="left:500px;top:455px">C4</div><div class="seat" data-seat="C1" style="left:645px;top:455px">C1</div><div class="seat" data-seat="C3" style="left:500px;top:535px">C3</div><div class="seat" data-seat="C2" style="left:645px;top:535px">C2</div>
+<div class="tableRect" style="left:560px;top:420px;width:80px;height:150px;writing-mode:vertical-rl">露營</div><div class="seat" data-seat="C4" style="left:500px;top:455px">C4</div><div class="seat" data-seat="C1" style="left:645px;top:455px">C1</div><div class="seat" data-seat="C3" style="left:500px;top:535px">C3</div><div class="seat" data-seat="C2" style="left:645px;top:535px">C2</div>
 <div class="divider" style="left:145px;top:620px;width:535px"></div>
 <div class="cab" style="left:145px;top:635px;width:54px;height:72px">櫃4</div><div class="cab" style="left:145px;top:707px;width:54px;height:72px">櫃5</div><div class="cab" style="left:145px;top:779px;width:54px;height:72px">櫃6</div>
 <div class="cab" style="left:455px;top:640px;width:70px;height:45px">櫃3</div><div class="cab" style="left:525px;top:640px;width:70px;height:45px">櫃2</div><div class="cab" style="left:595px;top:640px;width:70px;height:45px">櫃1</div>
@@ -1794,8 +1722,7 @@ function renderPeopleDrinks(){ensurePeople();$('peopleDrinks').classList.toggle(
    let c=calcTotal();
    html+=`<div class="editMergedCard"><div class="editMergedLine"><b>${seatsTxt}｜總額 $${c.total}</b></div><div class="editMergedLine">${pkgTxt}</div><div class="editMergedLine">飲料：${drinkTxt}</div><div class="editMergedLine">甜點：${dessertTxt}</div><div class="editMergedActions"><button class="btn primary" onclick="saveOrderEdit()">儲存</button></div></div>`;
  }else{
-   // 下方座位飲料區不再重複顯示「目前開單」摘要，保留上方那一張即可
-   html='';
+   html=currentOrderSummaryHTML();
  }
  let quick=selected.filter(seat=>personDrinks[seat]?.drink);
  if(quick.length){
@@ -2099,7 +2026,7 @@ function checkout(id){
       if(confirm('POS 匯入失敗，仍要清桌嗎？'))finishCheckoutClearSeat(id);
     });
 }
-function deleteOrder(id){if(!confirm('確定要刪除這筆訂單嗎？'))return;state.orders=state.orders.filter(x=>x.id!==id);if(editingOrderId===id){selected=[];activeDrinkSeat=null;personDrinks={};dessertQty={cheese:0,basque:0};editingOrderId=null;$('custName').value='';$('resvTime').value='';}save();renderAll();}function saveOrderEdit(){if(!editingOrderId){alert('目前沒有正在修改的座位');return}let o=state.orders.find(x=>x.id===editingOrderId);if(!o){editingOrderId=null;renderAll();return}o.name=$('custName').value.trim();o.type=orderType;o.pkg=packageSnapshot();o.drinks=JSON.parse(JSON.stringify(personDrinks));o.desserts=JSON.parse(JSON.stringify(dessertQty));if(!o.dessertServed)o.dessertServed={};Object.keys(o.desserts||{}).forEach(k=>{if((o.desserts[k]||0)<=0)delete o.dessertServed[k]});let c=calcTotal();o.total=c.total;o.paidAmount=c.paid;o.dueAmount=c.due;o.resvTime=$('resvTime').value||'';save();selected=[];activeDrinkSeat=null;personDrinks={};dessertQty={cheese:0,basque:0};editingOrderId=null;topServedDraft={};pkgQty={B:1};$('custName').value='';$('resvTime').value='';renderAll();}
+function deleteOrder(id){if(!confirm('取消這筆預約/開單？'))return;state.orders=state.orders.filter(x=>x.id!==id);if(editingOrderId===id){selected=[];activeDrinkSeat=null;personDrinks={};dessertQty={cheese:0,basque:0};editingOrderId=null;$('custName').value='';$('resvTime').value='';}save();renderAll();}function saveOrderEdit(){if(!editingOrderId){alert('目前沒有正在修改的座位');return}let o=state.orders.find(x=>x.id===editingOrderId);if(!o){editingOrderId=null;renderAll();return}o.name=$('custName').value.trim();o.type=orderType;o.pkg=packageSnapshot();o.drinks=JSON.parse(JSON.stringify(personDrinks));o.desserts=JSON.parse(JSON.stringify(dessertQty));if(!o.dessertServed)o.dessertServed={};Object.keys(o.desserts||{}).forEach(k=>{if((o.desserts[k]||0)<=0)delete o.dessertServed[k]});let c=calcTotal();o.total=c.total;o.paidAmount=c.paid;o.dueAmount=c.due;o.resvTime=$('resvTime').value||'';save();selected=[];activeDrinkSeat=null;personDrinks={};dessertQty={cheese:0,basque:0};editingOrderId=null;topServedDraft={};pkgQty={B:1};$('custName').value='';$('resvTime').value='';renderAll();}
 
 function hasUnservedDessert(o){
   if(!o||!o.desserts)return false;
@@ -2367,42 +2294,6 @@ function queueBatchHint(it,items){
  return '';
 }
 
-function drinkBaseBatchKey(pd){
-  let d=pd?.drink;if(!d)return '';
-  return String(d.name||'').trim();
-}
-function drinkTempBatchKey(pd){
-  let d=pd?.drink;if(!d)return '';
-  return String(d.temp||'').trim();
-}
-function queueHotIceTogetherHint(it,items){
-  if(it.kind!=='drink')return '';
-  let base=drinkBaseBatchKey(it.pd);
-  if(!base)return '';
-  let fiveMin=5*60*1000;
-  let same=items.filter(x=>
-    x.kind==='drink' &&
-    drinkBaseBatchKey(x.pd)===base &&
-    (
-      Math.abs(x.time-it.time)<=fiveMin ||
-      x.order?.id===it.order?.id
-    )
-  );
-  if(same.length<2)return '';
-  let temps=[...new Set(same.map(x=>drinkTempBatchKey(x.pd)).filter(Boolean))];
-  let hasIce=temps.some(t=>t.includes('冰'));
-  let hasHot=temps.some(t=>t.includes('熱'));
-  if(!(hasIce&&hasHot))return '';
-  same.sort((a,b)=>{
-    let ai=drinkTempBatchKey(a.pd).includes('冰')?0:1;
-    let bi=drinkTempBatchKey(b.pd).includes('冰')?0:1;
-    return ai-bi || a.time-b.time || seats.indexOf(a.seat||'')-seats.indexOf(b.seat||'');
-  });
-  let iceSeats=same.filter(x=>drinkTempBatchKey(x.pd).includes('冰')).map(x=>x.seat).join('、');
-  let hotSeats=same.filter(x=>drinkTempBatchKey(x.pd).includes('熱')).map(x=>x.seat).join('、');
-  return `<div class="queueTogetherHint">5分鐘內建議同做：「${base}」${iceSeats?`冰：${iceSeats}`:''}${iceSeats&&hotSeats?'｜':''}${hotSeats?`熱：${hotSeats}`:''}</div>`;
-}
-
 function queueEditToTopDetail(ev,id,focusSeat=null){
   if(ev){
     try{ev.preventDefault();}catch(e){}
@@ -2448,7 +2339,7 @@ function renderDrinkQueue(){
      let sugar=pd.sugar?`｜${pd.sugar}`:'';
      let ice=pd.ice?`｜${pd.ice}`:'';
      let single=pd.single?'｜單點':'';
-     return `<div class="queueCard queueSide ${cls}"><div class="queueInfo"><div class="big">${idx+1}. <span class="queueSeatLead">${it.seat}</span> 的飲料｜${d.name}${d.temp}${sugar}${ice}${single}</div><div class="queuePriorityHint">${drinkPriorityLabel(pd)}</div>${queueHotIceTogetherHint(it,items)}<div class="metaLine">同桌：${o.seats.join('、')}｜${o.name?o.name+'｜':''}${right}</div><div class="row" style="margin-top:8px"><button class="btn primary" onclick="markDrinkServed('${o.id}','${it.seat}')">已送達</button><button type="button" class="btn" onclick="return queueEditToTopDetail(event,'${o.id}','${it.seat}')">查看/修改</button></div></div><div class="queueMapSide">${renderMiniTableThumb(it.seat,(o.seats||[]).filter(s=>seatGroupKey(s)===seatGroupKey(it.seat)))}</div></div>`
+     return `<div class="queueCard queueSide ${cls}"><div class="queueInfo"><div class="big">${idx+1}. <span class="queueSeatLead">${it.seat}</span> 的飲料｜${d.name}${d.temp}${sugar}${ice}${single}</div><div class="queuePriorityHint">${drinkPriorityLabel(pd)}</div>${queueBatchHint(it,items)}<div class="metaLine">同桌：${o.seats.join('、')}｜${o.name?o.name+'｜':''}${right}</div><div class="row" style="margin-top:8px"><button class="btn primary" onclick="markDrinkServed('${o.id}','${it.seat}')">已送達</button><button type="button" class="btn" onclick="return queueEditToTopDetail(event,'${o.id}','${it.seat}')">查看/修改</button></div></div><div class="queueMapSide">${renderMiniTableThumb(it.seat,(o.seats||[]).filter(s=>seatGroupKey(s)===seatGroupKey(it.seat)))}</div></div>`
    }else{
      let d=it.dessert;
      return `<div class="queueCard queueSide ${cls}"><div class="queueInfo"><div class="big">${idx+1}. <span class="queueSeatLead">${(o.seats||[''])[0]}</span> 這桌甜點｜${d.name} × ${it.qty}</div><div class="metaLine">同桌：${o.seats.join('、')}｜${o.name?o.name+'｜':''}${right}</div><div class="row" style="margin-top:8px"><button class="btn primary" onclick="markDessertServed('${o.id}','${d.id}')">已送達</button><button type="button" class="btn" onclick="return queueEditToTopDetail(event,'${o.id}','${(o.seats||[''])[0]}')">查看/修改</button></div></div><div class="queueMapSide">${renderMiniTableThumb((o.seats||[''])[0],(o.seats||[]).filter(s=>seatGroupKey(s)===seatGroupKey((o.seats||[''])[0])))}</div></div>`
@@ -2474,7 +2365,6 @@ function renderCards(){
       let opened=viewOrderId===o.id?' opened':'';
       let thumb=firstSeat?renderMiniTableThumb(firstSeat,o.seats||[]):'';
       html+=`<div class="orderCard${opened}" onclick="viewOrderId==='${o.id}'?clearSelection():(viewOrderId='${o.id}',editingOrderId=null,selected=[],activeDrinkSeat=null,personDrinks={},dessertQty={cheese:0,basque:0},pkgQty={},renderAll())">
-        <button class="activeDeleteX" title="刪除" onclick="event.stopPropagation();deleteOrder('${o.id}')">×</button>
         <div class="activeCardGrid">
           <div class="activeCardInfo">
             <div class="top"><span>${o.name?o.name+'｜':''}${o.seats.join('、')}</span><span>${right}</span></div>
@@ -2486,6 +2376,7 @@ function renderCards(){
               ${o.status==='reserved'?`<button class="btn primary" onclick="startReserved('${o.id}')">到店／開始計時</button>`:''}
               <button class="btn brown" onclick="checkout('${o.id}')">送POS／結帳清桌</button>
               <button class="btn" onclick="return editOrderFromButton(event,'${o.id}','${firstSeat}')">編輯/修改</button>
+              <button class="btn danger" onclick="deleteOrder('${o.id}')">刪除</button>
             </div>
           </div>
           <div class="activeSeatThumbSide">${thumb}</div>
@@ -2499,61 +2390,36 @@ function renderCards(){
 function toggleEditSections(){let hide=isViewOnly();let ids=['pkgGrid','peopleDrinks','dessertGrid','totalMoney','calcHint'];ids.forEach(id=>{let el=$(id);if(el)el.classList.toggle('viewOnlyHide',hide);});document.querySelectorAll('.label').forEach(l=>{let t=l.innerText.trim();if(['套餐','座位飲料','甜點區'].includes(t))l.classList.toggle('viewOnlyHide',hide);});let total=document.querySelector('.total');if(total)total.classList.toggle('viewOnlyHide',hide);let typeRow=$('typeWalk')?.parentElement;if(typeRow)typeRow.classList.toggle('viewOnlyHide',hide);let nameRow=$('custName')?.closest('.grid2');if(nameRow)nameRow.classList.toggle('viewOnlyHide',hide);let drinkHint=$('peopleDrinks')?.previousElementSibling;if(drinkHint&&drinkHint.classList.contains('hint'))drinkHint.classList.toggle('viewOnlyHide',hide);}
 
 function fitSeatMap(){
-  const wrap=document.querySelector('.mapWrap');
-  const map=$('map');
+  let wrap=document.querySelector('.mapWrap'), map=$('map');
   if(!wrap||!map)return;
-
-  const baseW=760, baseH=1165;
-  const vw=Math.max(320, window.innerWidth || document.documentElement.clientWidth || 360);
-  const isPhone=vw<=580;
-  const isTablet=vw<=980;
-
+  let baseW=760, baseH=1165;
+  let vw=Math.max(320, window.innerWidth || document.documentElement.clientWidth || 360);
+  let isPhone=vw<=580;
+  let isTablet=vw<=980;
+  let pad=isPhone?18:24;
+  let availW=isPhone
+    ? Math.max(280, Math.min(vw-24, wrap.clientWidth-pad))
+    : Math.max(320, wrap.clientWidth-pad);
+  let scale=availW/baseW;
   if(isPhone){
-    // 手機版重點：完整看到整張寬度，不再切到右邊
-    const wrapStyle=getComputedStyle(wrap);
-    const padLeft=parseFloat(wrapStyle.paddingLeft)||0;
-    const padRight=parseFloat(wrapStyle.paddingRight)||0;
-    const availW=Math.max(280, wrap.clientWidth-padLeft-padRight);
-
-    // 隱藏攝影棚後，主要內容安全範圍約 92 ~ 640
-    const contentLeft=92;
-    const contentRight=640;
-    const contentW=contentRight-contentLeft;
-
-    let scale=availW/contentW;
-    // 以完整顯示為優先，保留一點放大感
-    scale=Math.max(.50, Math.min(.61, scale));
-
-    const visualW=contentW*scale;
-    const x=((availW-visualW)/2) - (contentLeft*scale);
-
+    scale=Math.max(.42, Math.min(.56, scale));
     map.style.setProperty('--mapScale', scale);
     map.style.transformOrigin='top left';
-    map.style.setProperty('transform', `translateX(${x}px) scale(${scale})`, 'important');
-    wrap.style.height=Math.round(baseH*scale + 12)+'px';
-    wrap.style.overflow='hidden';
+    map.style.transform=`translateX(0) scale(${scale})`;
+    wrap.style.height=Math.round(baseH*scale + 18)+'px';
+    wrap.style.overflow='visible';
     return;
-  }
-
-  let pad=isTablet?18:24;
-  let availW=Math.max(320, wrap.clientWidth-pad);
-  let scale=availW/baseW;
-
-  if(isTablet){
+  }else if(isTablet){
     scale=Math.max(.62, Math.min(.86, scale));
   }else{
     scale=Math.max(.72, Math.min(1.08, scale));
   }
-
   map.style.setProperty('--mapScale', scale);
-  map.style.transformOrigin='top center';
-  map.style.setProperty('transform', `scale(${scale})`, 'important');
-  wrap.style.height=Math.round(baseH*scale + 24)+'px';
-  wrap.style.overflow='hidden';
+  map.style.transform='';
+  wrap.style.height = Math.round(baseH*scale + (isPhone?18:24)) + 'px';
 }
 window.addEventListener('resize', fitSeatMap);
 window.addEventListener('orientationchange',()=>setTimeout(fitSeatMap,250));
-window.addEventListener('load',()=>setTimeout(fitSeatMap,80));
 
 function todayKeyLocal(){
   const d=new Date();
