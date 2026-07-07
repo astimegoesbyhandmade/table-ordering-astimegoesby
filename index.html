@@ -2005,7 +2005,7 @@ function renderPeopleDrinks(){ensurePeople();$('peopleDrinks').classList.toggle(
    html+=`</div>`;
  }
  html+=`<div class="label">選飲料</div><div class="chips">${selected.map(seat=>`<button class="chip ${activeDrinkSeat===seat?'active':''}" onclick="chooseDrinkSeat('${seat}')"><b>${seat}</b>｜${seatDrinkLabel(seat)}</button>`).join('')}</div>`;
- if(!activeDrinkSeat){html+=``;html+=`<div class="drinkPanelSaveWrap"><button id="drinkPanelSaveBtn" class="drinkPanelSaveBtn" onclick="saveDrinkPanel()">儲存飲料</button></div>`;
+ if(!activeDrinkSeat){html+=``;if(editingOrderId){html+=`<div class="drinkPanelSaveWrap"><button id="drinkPanelSaveBtn" class="drinkPanelSaveBtn" onclick="saveDrinkPanel()">儲存飲料</button></div>`;}
  $('peopleDrinks').innerHTML=html;renderTotal();return}
  let seat=activeDrinkSeat;let pd=personDrinks[seat];let cats=['咖啡','茶類','奶茶','果茶','隱藏菜單'];let list=drinks.filter(d=>d.cat===drinkCat);
  let singleBtn=hasMixedSingleDrinkNeed()?`<button class="singleDrinkBtn ${pd.single?'on':''}" onclick="toggleSingleDrink('${seat}')">單點</button>`:'';
@@ -2017,7 +2017,8 @@ function renderPeopleDrinks(){ensurePeople();$('peopleDrinks').classList.toggle(
  if(pd.drink){let d=pd.drink;html+=`<div class="label">甜度</div><div class="chips">`; if(d.sugar&&d.sugar.length){d.sugar.forEach(x=>{let fixed=x.includes('固定');html+=`<button class="chip ${pd.sugar===x?'active':''} ${fixed?'fixed':''}" onclick="pickSugar('${seat}','${x}')">${x}</button>`})}else{html+=`<span class="chip fixed">不用選</span>`} html+=`</div>`;
  html+=`<div class="label">冰塊</div><div class="chips">`; if(d.iceFixed){html+=`<span class="chip fixed">${d.iceFixed}</span>`}else if(d.ice&&d.ice.length){d.ice.forEach(x=>html+=`<button class="chip ${pd.ice===x?'active':''}" onclick="pickIce('${seat}','${x}')">${x}</button>`)}else{html+=`<span class="chip fixed">熱飲不用選</span>`} html+=`</div>`;
  }
- html+=`<div class="drinkPanelSaveWrap"><button id="drinkPanelSaveBtn" class="drinkPanelSaveBtn" onclick="saveDrinkPanel()">儲存飲料</button></div></div>`;$('peopleDrinks').innerHTML=html;renderTotal();}
+ if(editingOrderId){html+=`<div class="drinkPanelSaveWrap"><button id="drinkPanelSaveBtn" class="drinkPanelSaveBtn" onclick="saveDrinkPanel()">儲存飲料</button></div>`;}
+ html+=`</div>`;$('peopleDrinks').innerHTML=html;renderTotal();}
 function pickDrink(seat,cat,index){let d=drinks.filter(x=>x.cat===cat)[index];let keepSingle=!!personDrinks[seat]?.single;personDrinks[seat]={drink:d,sugar:(d.sugar&&d.sugar.length?d.sugar[0]:null),ice:(d.ice&&d.ice.length?d.ice[0]:(d.iceFixed||null)),served:false,single:keepSingle};activeDrinkSeat=seat;syncEditingOrder();renderPeopleDrinks();}
 function clearDrink(seat){if(!personDrinks[seat])return;personDrinks[seat]={drink:null,sugar:null,ice:null,served:false,single:false};activeDrinkSeat=seat;syncEditingOrder();renderPeopleDrinks();renderTotal();renderMap();renderDrinkQueue();}
 function syncEditingOrder(){if(!editingOrderId)return;let o=state.orders.find(x=>x.id===editingOrderId);if(!o)return;o.drinks=JSON.parse(JSON.stringify(personDrinks));o.desserts=JSON.parse(JSON.stringify(dessertQty));o.name=$('custName').value.trim();o.type=orderType;o.pkg=packageSnapshot();let c=calcTotal();o.total=c.total;o.paidAmount=c.paid;o.dueAmount=c.due;o.resvTime=$('resvTime').value||'';save();renderCards();renderMap();renderOrderPreview();renderDrinkQueue();}
