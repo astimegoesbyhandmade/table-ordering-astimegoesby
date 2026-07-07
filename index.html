@@ -1367,6 +1367,42 @@ body.queueOnlyMode #drinkQueueCards .queueCard.queueSide{
   }
 }
 
+
+.seatLabel{
+  position:relative;
+  z-index:6;
+  pointer-events:none;
+}
+.seat .mini{
+  pointer-events:none;
+}
+@media(max-width:580px){
+  .seat{
+    overflow:visible!important;
+    isolation:isolate!important;
+  }
+  .seatLabel{
+    position:relative!important;
+    z-index:8!important;
+    background:transparent!important;
+  }
+  .seat .mini{
+    z-index:2!important;
+    font-size:8px!important;
+    line-height:1!important;
+    padding:1px 3px!important;
+    bottom:-14px!important;
+    top:auto!important;
+    max-width:42px!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  .seat[data-seat="A1"] .mini{
+    top:auto!important;
+    bottom:-14px!important;
+  }
+}
+
 </style>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -2389,7 +2425,7 @@ function hasUnservedItemForSeat(o,s){
   return !!(pd&&pd.drink&&!pd.served) || hasUnservedDessert(o);
 }
 function renderMap(){document.querySelectorAll('.seat').forEach(el=>{let s=el.dataset.seat;el.className='seat';let o=isSeatBusy(s);let mini=''; if(selected.includes(s))el.classList.add('selected'); if(o&&(viewOrderId===o.id||editingOrderId===o.id))el.classList.add('selectedOrder'); if(o){ let now=new Date();let start=o.startAt?new Date(o.startAt):null;let started=(o.type==='reservation')?(start&&now>=start):(o.status==='active'); if(o.type==='reservation'&&!started){el.classList.add('reserved');}else{let left=o.endAt?(new Date(o.endAt)-now)/60000:999;el.classList.add(left<0?'late':left<=15?'soon':'busy');} if(hasUnservedItemForSeat(o,s))el.classList.add('foodPending'); mini=(o.type==='reservation'&&o.resvTime)?((o.resvTime||'預約')+(o.endAt?'–'+fmtTime(o.endAt):'')):(o.endAt?fmtTime(o.endAt):''); }
- el.innerHTML=s+(mini?`<span class="mini">${mini}</span>`:'');});}
+ el.innerHTML=`<span class="seatLabel">${s}</span>`+(mini?`<span class="mini">${mini}</span>`:'');});}
 
 function instantSeatVisual(s){
   let el=document.querySelector(`.seat[data-seat="${s}"]`);
@@ -2402,7 +2438,7 @@ function instantSeatVisual(s){
     el.classList.remove('selected');
   }
 }
-function seatClick(e){let s=e.currentTarget.dataset.seat;let o=isSeatBusy(s); if(arrangingReservationId){if(o){alert('這個座位目前已被使用或預約，不能選。');return}let r=state.pendingReservations.find(x=>x.id===arrangingReservationId);let max=r?Number(r.people):99;if(selected.includes(s)){selected=selected.filter(x=>x!==s)}else{if(selected.length>=max){alert('已經選滿 '+max+' 個座位囉');return}selected.push(s)}renderMap();renderReservationPlanner();renderTodayReservationReminder();return} if(o){if(viewOrderId===o.id){clearSelection();return}viewOrderId=o.id;editingOrderId=null;selected=[];activeDrinkSeat=null;personDrinks={};dessertQty={cheese:0,basque:0};pkgQty={};loadTopServedDraft(o);renderAll();return} if(selected.includes(s)){selected=selected.filter(x=>x!==s); if(activeDrinkSeat===s)activeDrinkSeat=null;}else selected.push(s);instantSeatVisual(s);viewOrderId=null;setTimeout(()=>{renderInstantOrderDetail();renderPackages();renderPeopleDrinks();renderMap();renderCards();renderTotal();renderOrderPreview();},0);}
+function seatClick(e){let s=e.currentTarget.dataset.seat;let o=isSeatBusy(s); if(arrangingReservationId){if(o){alert('這個座位目前已被使用或預約，不能選。');return}let r=state.pendingReservations.find(x=>x.id===arrangingReservationId);let max=r?Number(r.people):99;if(selected.includes(s)){selected=selected.filter(x=>x!==s)}else{if(selected.length>=max){alert('已經選滿 '+max+' 個座位囉');return}selected.push(s)}renderMap();renderReservationPlanner();renderTodayReservationReminder();return} if(o){if(viewOrderId===o.id){clearSelection();return}viewOrderId=o.id;editingOrderId=null;selected=[];activeDrinkSeat=null;personDrinks={};dessertQty={cheese:0,basque:0};pkgQty={};loadTopServedDraft(o);renderAll();setTimeout(()=>jumpToOrderEditorInstant(),80);return} if(selected.includes(s)){selected=selected.filter(x=>x!==s); if(activeDrinkSeat===s)activeDrinkSeat=null;}else selected.push(s);instantSeatVisual(s);viewOrderId=null;setTimeout(()=>{renderInstantOrderDetail();renderPackages();renderPeopleDrinks();renderMap();renderCards();renderTotal();renderOrderPreview();},0);}
 document.querySelectorAll('.seat').forEach(el=>el.addEventListener('click',seatClick));
 
 
