@@ -1403,6 +1403,93 @@ body.queueOnlyMode #drinkQueueCards .queueCard.queueSide{
   }
 }
 
+
+/* Full-size report/history modals */
+.modal{
+  padding:10px!important;
+  align-items:center!important;
+}
+.modalBox{
+  width:min(1500px,98vw)!important;
+  height:min(92vh,980px)!important;
+  max-height:92vh!important;
+  display:flex!important;
+  flex-direction:column!important;
+}
+.modalHead{
+  flex:0 0 auto!important;
+}
+.modalBodyScroll{
+  flex:1 1 auto;
+  overflow:auto;
+  padding:12px 18px 22px;
+}
+.modalTools{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  padding:10px 18px;
+  border-bottom:1px solid var(--line);
+  background:#fff;
+}
+.modalTools input[type="date"]{
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:10px 12px;
+  font-weight:900;
+  font-size:15px;
+  background:#fff;
+}
+.modalSummaryBar{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin:0 0 12px;
+  padding:12px 14px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:#fff7fb;
+  font-weight:900;
+}
+.modalSummaryBar .bigMoney{
+  font-size:22px;
+  color:#9a4f77;
+}
+@media(max-width:580px){
+  .modal{
+    padding:0!important;
+  }
+  .modalBox{
+    width:100vw!important;
+    height:100vh!important;
+    max-height:100vh!important;
+    border-radius:0!important;
+  }
+  .modalHead{
+    padding:14px 16px!important;
+  }
+  .modalTitle{
+    font-size:22px!important;
+  }
+  .modalTools{
+    padding:10px 14px;
+  }
+  .modalTools input[type="date"]{
+    flex:1;
+    min-width:160px;
+  }
+  .modalBodyScroll{
+    padding:10px 14px 22px;
+  }
+}
+
+
+/* modal content should use full available height */
+.modalBodyScroll.cards{display:block!important;max-height:none!important;overflow:auto!important}
+.modalBodyScroll .cards{display:grid;grid-template-columns:1fr;gap:8px;max-height:none!important;overflow:visible!important}
+
 </style>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -1458,7 +1545,7 @@ body.queueOnlyMode #drinkQueueCards .queueCard.queueSide{
 </div></div>
 <section class="panel queuePanel"><h2>製作順序</h2><div class="body"><div class="row" style="margin:0 0 10px"><button class="btn primary" onclick="openFullQueueWindow()">查看完整順序</button><span class="hint">另開只顯示製作順序的視窗</span></div><div class="cards" id="drinkQueueCards"></div></div></section>
 <section class="panel"><h2>進行中 / 預約</h2><div class="body"><div class="cards" id="activeCards"></div></div></section>
-<section class="panel"><h2>今日紀錄</h2><div class="body"><div class="row"><button class="btn" onclick="exportCSV()">匯出 CSV</button><button class="btn primary" onclick="openTodayDetailModal()">詳細資料</button><button class="btn" onclick="openHistoryModal()">歷史紀錄</button></div><div class="cards" id="historyCards"></div></div></section><div id="historyModal" class="modal hidden"><div class="modalBox"><div class="modalHead"><div class="modalTitle">歷史紀錄</div><button class="btn" onclick="closeHistoryModal()">關閉</button></div><div id="historyAllCards" class="cards"></div></div></div><div id="todayDetailModal" class="modal hidden"><div class="modalBox"><div class="modalHead"><div class="modalTitle">今日詳細資料</div><button class="btn" onclick="closeTodayDetailModal()">關閉</button></div><div id="todayDetailBox" class="cards"></div></div></div>
+<section class="panel"><h2>今日紀錄</h2><div class="body"><div class="row"><button class="btn" onclick="exportCSV()">匯出 CSV</button><button class="btn primary" onclick="openTodayDetailModal()">歷史紀錄</button></div><div class="cards" id="historyCards"></div></div></section><div id="todayDetailModal" class="modal hidden"><div class="modalBox"><div class="modalHead"><div class="modalTitle">歷史紀錄</div><button class="btn" onclick="closeTodayDetailModal()">關閉</button></div><div class="modalTools"><b>選日期</b><input type="date" id="todayDetailDate" onchange="renderTodayDetail()"><button class="btn primary" onclick="setTodayDetailDate(todayISO())">今天</button></div><div id="todayDetailBox" class="cards modalBodyScroll"></div></div></div>
 </div>
 <script>
 const firebaseConfig = {
@@ -1567,6 +1654,7 @@ const LOCAL_KEY='seatSystemV10';
 const LIVE_PATH='seatSystemLive/state';
 const POS_IMPORT_PATH='seatToPosImport/current';
 const POS_PAID_ACK_PATH='seatToPosImport/paid';
+const POS_RETURN_ACK_PATH='seatToPosImport/returned';
 let state=JSON.parse(localStorage.getItem(LOCAL_KEY)||'{"orders":[],"history":[],"pendingReservations":[]}');normalizeState(state);
 let db=null, liveRef=null, firebaseSyncReady=false, applyingRemote=false, lastSavedJson='';
 function normalizeState(s){
@@ -2345,6 +2433,31 @@ function markOrderWaitingPOS(id){
   renderAll();
 }
 
+function handlePOSReturnedAck(info){
+  if(!info||!info.orderId)return;
+  let beforeHistory=state.history.length;
+  let beforeOrders=state.orders.length;
+
+  state.history=state.history.filter(o=>o.id!==info.orderId);
+  state.orders=state.orders.filter(o=>o.id!==info.orderId);
+
+  if(viewOrderId===info.orderId)viewOrderId=null;
+  if(editingOrderId===info.orderId)editingOrderId=null;
+  selected=[];
+  activeDrinkSeat=null;
+  personDrinks={};
+  dessertQty={cheese:0,basque:0};
+  pkgQty={};
+  topServedDraft={};
+  topDessertServedDraft={};
+
+  if(state.history.length!==beforeHistory || state.orders.length!==beforeOrders){
+    save();
+    renderAll();
+    setSyncStatus('POS 退貨已同步刪除座位紀錄');
+  }
+}
+
 function handlePOSPaidAck(info){
   if(!info||!info.orderId)return;
   let o=state.orders.find(x=>x.id===info.orderId);
@@ -2361,6 +2474,12 @@ function initPOSCheckoutAckListener(){
   });
   db.ref(POS_PAID_ACK_PATH).on('child_changed',snap=>{
     handlePOSPaidAck(snap.val());
+  });
+  db.ref(POS_RETURN_ACK_PATH).on('child_added',snap=>{
+    handlePOSReturnedAck(snap.val());
+  });
+  db.ref(POS_RETURN_ACK_PATH).on('child_changed',snap=>{
+    handlePOSReturnedAck(snap.val());
   });
 }
 
@@ -2547,6 +2666,23 @@ function isSameDay(a,b){let da=new Date(a), db=new Date(b);return da.getFullYear
 function dayKey(v){let d=new Date(v);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function dayLabel(key){let d=new Date(key+'T00:00:00');return d.toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'})}
 function todayHistory(){let now=new Date();return state.history.filter(o=>o.doneAt&&isSameDay(o.doneAt,now))}
+function historyByDateISO(dateISO){
+  if(!dateISO)return [...state.history];
+  return state.history.filter(o=>o.doneAt&&dayKey(o.doneAt)===dateISO);
+}
+function setHistoryDate(v){
+  let el=$('historyDate');if(el)el.value=v||todayISO();
+  renderAllHistory();
+}
+function clearHistoryDate(){
+  let el=$('historyDate');if(el)el.value='';
+  renderAllHistory();
+}
+function setTodayDetailDate(v){
+  let el=$('todayDetailDate');if(el)el.value=v||todayISO();
+  renderTodayDetail();
+}
+
 function itemNameById(arr,id){let x=(arr||[]).find(v=>v.id===id);return x?(x.name||id):id}
 function addCount(map,key,qty=1){if(!key)return;map[key]=(map[key]||0)+(Number(qty)||0)}
 function renderCountRows(title,map){let entries=Object.entries(map).filter(([k,v])=>v>0).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));if(!entries.length)return `<div class="orderCard"><div class="top"><span>${title}</span><span>0</span></div><div class="hint">沒有資料</div></div>`;let total=entries.reduce((s,[k,v])=>s+v,0);let rows=entries.map(([k,v])=>`<div class="meta">${k} × ${v}</div>`).join('');return `<div class="orderCard"><div class="top"><span>${title}</span><span>共 ${total} 份</span></div>${rows}</div>`}
@@ -2562,15 +2698,45 @@ function todayItemSummary(list=todayHistory()){
  return {pkg,drink,dessert,total,paid,due,count:list.length};
 }
 function renderTodayDetail(){
- let box=$('todayDetailBox');if(!box)return;let sum=todayItemSummary();let pay=`<div class="orderCard"><div class="top"><span>今日營收</span><span>${sum.count} 筆</span></div><div class="meta">總額：$${sum.total}</div><div class="meta">已付款：$${sum.paid}</div><div class="meta">現場應收：$${sum.due}</div></div>`;
- box.innerHTML=pay+renderCountRows('套餐品項',sum.pkg)+renderCountRows('飲料品項',sum.drink)+renderCountRows('甜點品項',sum.dessert);
+ let box=$('todayDetailBox');if(!box)return;
+ let dateEl=$('todayDetailDate');
+ let dateISO=(dateEl&&dateEl.value)?dateEl.value:todayISO();
+ if(dateEl&&!dateEl.value)dateEl.value=dateISO;
+ let list=historyByDateISO(dateISO);
+ let sum=todayItemSummary(list);
+ let title=dateISO===todayISO()?'今日歷史紀錄':`${dateLabelFromISO(dateISO)} 歷史紀錄`;
+ let pay=`<div class="modalSummaryBar"><span>${title}</span><span>${sum.count} 筆</span><span class="bigMoney">總額 $${sum.total}</span><span>已付款 $${sum.paid}</span><span>現場應收 $${sum.due}</span></div>`;
+ box.innerHTML=pay+renderCountRows('套餐品項',sum.pkg)+renderCountRows('飲料品項',sum.drink)+renderCountRows('甜點品項',sum.dessert)+`<div class="historyDay">${dateLabelFromISO(dateISO)} 當日紀錄</div><div class="cards">${renderHistoryCards(list,false)}</div>`;
 }
-function openTodayDetailModal(){renderTodayDetail();$('todayDetailModal').classList.remove('hidden')}
+function openTodayDetailModal(){
+ let el=$('todayDetailDate');if(el&&!el.value)el.value=todayISO();
+ renderTodayDetail();$('todayDetailModal').classList.remove('hidden');
+}
 function closeTodayDetailModal(){$('todayDetailModal').classList.add('hidden')}
 
 function renderHistoryCards(list,withDelete=true){if(!list.length)return '<div class="hint">目前沒有紀錄。</div>';let html='';list.forEach(o=>{html+=`<div class="orderCard"><div class="top"><span>${o.name?o.name+'｜':''}${o.seats.join('、')}</span><span class="topRightActions"><span>${o.paidAmount?('應收 $'+dueAmount(o.total,o.paidAmount)):('$'+o.total)}</span>${withDelete?`<button class="miniDelete" title="刪除這筆紀錄" onclick="event.stopPropagation();deleteHistoryItem('${o.id}')">×</button>`:''}</span></div><div class="meta">${new Date(o.doneAt).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})}｜${o.pkg.fullName||o.pkg.name}｜${paymentSummary(o)}</div><div class="meta">時段：${orderTimeRange(o)||'-'}</div><div class="meta">飲料：${orderDrinkDetail(o)}</div><div class="meta">甜點：${dessertSummary(o)}</div></div>`});return html}
-function renderAllHistory(){let box=$('historyAllCards');if(!box)return;let arr=[...state.history].sort((a,b)=>new Date(b.doneAt)-new Date(a.doneAt));if(!arr.length){box.innerHTML='<div class="hint" style="padding:20px">還沒有任何歷史紀錄。</div>';return}let groups={};arr.forEach(o=>{let k=dayKey(o.doneAt||new Date());(groups[k]||(groups[k]=[])).push(o)});let html='';Object.keys(groups).sort((a,b)=>b.localeCompare(a)).forEach(k=>{html+=`<div class="historyDay">${dayLabel(k)}</div><div class="cards">${renderHistoryCards(groups[k],false)}</div>`});box.innerHTML=html}
-function openHistoryModal(){renderAllHistory();$('historyModal').classList.remove('hidden')}
+function renderAllHistory(){
+ let box=$('historyAllCards');if(!box)return;
+ let dateISO=$('historyDate')?.value||'';
+ let arr=historyByDateISO(dateISO).sort((a,b)=>new Date(b.doneAt)-new Date(a.doneAt));
+ if(!arr.length){
+   box.innerHTML=`<div class="hint" style="padding:20px">${dateISO?dateLabelFromISO(dateISO)+' 沒有歷史紀錄。':'還沒有任何歷史紀錄。'}</div>`;
+   return;
+ }
+ if(dateISO){
+   let sum=todayItemSummary(arr);
+   box.innerHTML=`<div class="modalSummaryBar"><span>${dateLabelFromISO(dateISO)}</span><span>${sum.count} 筆</span><span class="bigMoney">總額 $${sum.total}</span><span>已付款 $${sum.paid}</span><span>現場應收 $${sum.due}</span></div><div class="cards">${renderHistoryCards(arr,false)}</div>`;
+   return;
+ }
+ let groups={};arr.forEach(o=>{let k=dayKey(o.doneAt||new Date());(groups[k]||(groups[k]=[])).push(o)});
+ let html='';
+ Object.keys(groups).sort((a,b)=>b.localeCompare(a)).forEach(k=>{let sum=todayItemSummary(groups[k]);html+=`<div class="historyDay">${dayLabel(k)}｜${sum.count} 筆｜總額 $${sum.total}</div><div class="cards">${renderHistoryCards(groups[k],false)}</div>`});
+ box.innerHTML=html;
+}
+function openHistoryModal(){
+ let el=$('historyDate');if(el&&!el.value)el.value=todayISO();
+ renderAllHistory();$('historyModal').classList.remove('hidden');
+}
 function closeHistoryModal(){$('historyModal').classList.add('hidden')}
 function deleteHistoryItem(id){let o=state.history.find(x=>x.id===id);if(!o)return;if(!confirm(`確定刪除這筆結帳紀錄？\n${o.seats.join('、')}｜${paymentSummary(o)}`))return;state.history=state.history.filter(x=>x.id!==id);save();renderCards();renderAllHistory()}
 
